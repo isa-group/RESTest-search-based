@@ -4,6 +4,7 @@ import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
 import io.swagger.v3.oas.models.PathItem;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -11,6 +12,7 @@ import static org.junit.Assert.*;
 public class RestAssuredExecutorTest {
 
     @Test
+    @Ignore
     public void executeOneValidTestWithoutOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
@@ -32,6 +34,7 @@ public class RestAssuredExecutorTest {
     }
 
     @Test
+    @Ignore
     public void executeOneValidTestWithOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
@@ -52,6 +55,7 @@ public class RestAssuredExecutorTest {
     }
 
     @Test
+    @Ignore
     public void executeOneFaultyTestWithoutOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
@@ -72,6 +76,7 @@ public class RestAssuredExecutorTest {
     }
 
     @Test
+    @Ignore
     public void executeOneFaultyTestWithOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
@@ -91,6 +96,7 @@ public class RestAssuredExecutorTest {
     }
 
     @Test
+    @Ignore
     public void executeOneFailingTestWithOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
@@ -112,6 +118,7 @@ public class RestAssuredExecutorTest {
     }
 
     @Test
+    @Ignore
     public void executeMultipleTestsWithOraclesTest() {
         OpenAPISpecification openAPISpecification = new OpenAPISpecification("src/test/resources/Travel/swagger_betty.yaml");
         RestAssuredExecutor executor = new RestAssuredExecutor(openAPISpecification);
