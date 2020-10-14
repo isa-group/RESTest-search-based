@@ -5,6 +5,7 @@ package es.us.isa.restest.searchbased;
 
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
+import es.us.isa.restest.util.RESTestException;
 import org.uma.jmetal.solution.impl.AbstractGenericSolution;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
@@ -16,8 +17,8 @@ import java.util.Map;
 public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCase,RestfulAPITestSuiteGenerationProblem>{
 
     private Map<String,TestResult> testResults; // key = testCaseId
-    
-    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem) {
+
+    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem) throws RESTestException {
         this(problem, false);
     }
 
@@ -28,7 +29,7 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
      * @param problem Problem to solve
      * @param withoutTestCases true if no test cases need to be added to the solution
      */
-    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem, boolean withoutTestCases) {
+    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem, boolean withoutTestCases) throws RESTestException {
         super(problem);
         this.testResults=new HashMap<>();
         if (!withoutTestCases)
@@ -46,8 +47,13 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
 
     @Override
     public RestfulAPITestSuiteSolution copy() {
-    	RestfulAPITestSuiteSolution result=new RestfulAPITestSuiteSolution(this.problem, true);
-    	TestCase testCase=null;
+        RestfulAPITestSuiteSolution result= null;
+        try {
+            result = new RestfulAPITestSuiteSolution(this.problem, true);
+        } catch (RESTestException e) { // This should never happen, since createVariables() method won't be called
+            e.printStackTrace();
+        }
+        TestCase testCase=null;
     	for(int i=0;i<this.getNumberOfVariables();i++) {
     		testCase=this.getVariable(i);
     		result.setVariable(i, copyTestCase(testCase));
@@ -125,7 +131,7 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
         return testResults.values();
     }
 
-    public void createVariables() {
+    public void createVariables() throws RESTestException {
     	int nVariables=computeTestSuiteSize();
         for(int i=0;i<nVariables;i++) {
             this.setVariable(i, problem.createRandomTestCase());

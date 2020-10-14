@@ -12,6 +12,7 @@ import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
 import es.us.isa.restest.testcases.restassured.executors.RestAssuredExecutor;
+import es.us.isa.restest.util.RESTestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.problem.impl.AbstractGenericProblem;
@@ -138,7 +139,12 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
 
     @Override
     public RestfulAPITestSuiteSolution createSolution() {
-        return new RestfulAPITestSuiteSolution(this);
+        try {
+            return new RestfulAPITestSuiteSolution(this);
+        } catch (RESTestException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     public OpenAPISpecification getApiUnderTest() {
@@ -166,7 +172,7 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
         return results;
     }
 
-	public TestCase createRandomTestCase() {
+	public TestCase createRandomTestCase() throws RESTestException {
 		Operation operation = chooseRandomOperation();
 		String faulty = chooseRandomFaultyReason();
 		ConstraintBasedTestCaseGenerator testCaseGenerator = testCaseGenerators.get(operation.getOperationId());

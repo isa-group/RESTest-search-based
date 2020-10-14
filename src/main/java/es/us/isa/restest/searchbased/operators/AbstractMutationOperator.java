@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.specification.ParameterFeatures;
 import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.util.RESTestException;
 import org.uma.jmetal.operator.MutationOperator;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
@@ -49,8 +50,13 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
 
     @Override
     public RestfulAPITestSuiteSolution execute(RestfulAPITestSuiteSolution solution) {
-        assert (solution != null);        
-        doMutation(getMutationProbability(), solution);
+        assert (solution != null);
+        try {
+            doMutation(getMutationProbability(), solution);
+        } catch (RESTestException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
         return solution;
     }
 
@@ -85,5 +91,5 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
 		return securityParamNames.contains(paramName);
 	}
 
-	protected abstract void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution);
+	protected abstract void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) throws RESTestException;
 }
