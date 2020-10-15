@@ -34,6 +34,18 @@ public class RandomSearchVsNSGAII {
     private String method ="GET";
     private int minTestSuiteSize=2;
     private int maxTestSuiteSize=10;
+	private double[] mutationProbabilities = {
+			0.1, // AddTestCaseMutation
+			0.1, // RemoveTestCaseMutation
+			0.1, // ReplaceTestCaseMutation
+			0.1, // AddParameterMutation
+			0.1, // RemoveParameterMutation
+			0.1  // RandomParameterValueMutation
+	};
+	private double[] crossoverProbabilities = {
+			0.1, // UniformTestCaseCrossover
+			0.1  // SinglePointTestSuiteCrossover
+	};
 	
     
     List<RestfulAPITestSuiteGenerationProblem> problems = null;
@@ -53,7 +65,7 @@ public class RandomSearchVsNSGAII {
 		for(int runId=0;runId<independentRuns;runId++) {
 			for(RestfulAPITestSuiteGenerationProblem problem:problems) {
 				ep=new ExperimentProblem<>(problem);
-				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, maxEvaluations, problem.clone());
+				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, mutationProbabilities, crossoverProbabilities, maxEvaluations, problem.clone());
 				randomSearch=new RandomSearch(problem.clone(),new MaxEvaluations(maxEvaluations));
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(NSGAII, "NSGAII", ep,runId ));			
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(randomSearch,"RandomSearch",ep,runId));			

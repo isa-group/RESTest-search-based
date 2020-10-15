@@ -36,6 +36,18 @@ public class RandomSearchExperiment {
 	    String method ="GET";
 	    int minTestSuiteSize=2;
 	    int maxTestSuiteSize=10;
+		double[] mutationProbabilities = {
+				0.1, // AddTestCaseMutation
+				0.1, // RemoveTestCaseMutation
+				0.1, // ReplaceTestCaseMutation
+				0.1, // AddParameterMutation
+				0.1, // RemoveParameterMutation
+				0.1  // RandomParameterValueMutation
+		};
+		double[] crossoverProbabilities = {
+				0.1, // UniformTestCaseCrossover
+				0.1  // SinglePointTestSuiteCrossover
+		};
 	    List<RestfulAPITestingObjectiveFunction> objectiveFunctions= Arrays.asList(
 				new InputCoverage(),
 	    		new SuiteSize()
@@ -50,6 +62,8 @@ public class RandomSearchExperiment {
                 minTestSuiteSize,
                 maxTestSuiteSize,                
                 populationSize,
+				mutationProbabilities,
+				crossoverProbabilities,
                 new MaxEvaluations(maxEvaluations),
 				null);
 	    List<RestfulAPITestSuiteGenerationProblem> problems = Arrays.asList();
