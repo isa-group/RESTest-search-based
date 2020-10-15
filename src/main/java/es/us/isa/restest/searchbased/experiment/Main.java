@@ -41,7 +41,7 @@ import static es.us.isa.restest.util.Timer.TestStep.ALL;
  *
  * @author japar
  */
-public class BikeWiseExperiment {
+public class Main {
 
     private static int fixedTestSuiteSize = 2; // Number of test cases per suite
     private static int minTestSuiteSize = 1;
@@ -58,7 +58,7 @@ public class BikeWiseExperiment {
     private static String packageName = "bikewise";							// Package name
     private static long seed = 1979;
 
-    private static final Logger logger = LogManager.getLogger(BikeWiseExperiment.class.getName());
+    private static final Logger logger = LogManager.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
         Timer.startCounting(ALL);
