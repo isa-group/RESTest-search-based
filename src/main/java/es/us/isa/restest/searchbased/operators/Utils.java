@@ -2,11 +2,11 @@ package es.us.isa.restest.searchbased.operators;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.util.OASAPIValidator;
 
 import java.util.List;
 
 import static es.us.isa.restest.testcases.TestCase.checkFulfillsDependencies;
-import static es.us.isa.restest.testcases.TestCase.getFaultyReasons;
 
 /**
  * This class contains common utilities to all mutation operators
@@ -15,7 +15,7 @@ public class Utils {
 
     static void updateTestCaseFaultyReason(RestfulAPITestSuiteSolution solution, TestCase testCase) {
         if (testCase.getEnableOracles()) {
-            List<String> faultyReasons = getFaultyReasons(testCase, solution.getProblem().getTestCaseGenerators().get(testCase.getOperationId()).getValidator());
+            List<String> faultyReasons = testCase.getValidationErrors(OASAPIValidator.getValidator(solution.getProblem().getApiUnderTest()));
             if (!faultyReasons.isEmpty()) {
                 testCase.setFaultyReason(String.join(", ", faultyReasons));
                 testCase.setFaulty(true);

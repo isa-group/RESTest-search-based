@@ -22,13 +22,17 @@ public class RandomSearch implements SearchBasedAlgorithm {
 
 	@Override
 	public void run() {
-		evaluations = 0;
-		RestfulAPITestSuiteSolution newSolution;
-		while (!terminationCriterion.test(this)) {
-			newSolution = problem.createSolution();
-			problem.evaluate(newSolution);
-			evaluations++;
-			nonDominatedArchive.add(newSolution);
+		try {
+			evaluations = 0;
+			RestfulAPITestSuiteSolution newSolution;
+			while (!terminationCriterion.test(this)) {
+				newSolution = problem.createSolution();
+				problem.evaluate(newSolution);
+				evaluations++;
+				nonDominatedArchive.add(newSolution);
+			}
+		} catch(RuntimeException e) {
+
 		}
 	}
 

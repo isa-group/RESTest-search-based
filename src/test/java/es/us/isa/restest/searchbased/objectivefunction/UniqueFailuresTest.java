@@ -6,6 +6,7 @@ import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
 import es.us.isa.restest.util.IDGenerator;
+import es.us.isa.restest.util.RESTestException;
 import io.swagger.v3.oas.models.PathItem;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 public class UniqueFailuresTest extends AbstractSearchBasedTest {
 
     @Test
-    public void onlyOneUniqueFailureTest() {
+    public void onlyOneUniqueFailureTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
         // Leave testConf with only one operation:
         problem.getConfig().getTestConfiguration().setOperations(Collections.singletonList(problem.getConfig().getTestConfiguration().getOperations().get(0)));
@@ -33,7 +34,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void onlyOneUniqueFailurePerOperationPerStatusCodeTest() {
+    public void onlyOneUniqueFailurePerOperationPerStatusCodeTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
@@ -56,7 +57,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void allUniqueFailuresTest() {
+    public void allUniqueFailuresTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
         // Leave testConf with only one operation:
         problem.getConfig().getTestConfiguration().setOperations(Collections.singletonList(problem.getConfig().getTestConfiguration().getOperations().get(0)));
@@ -72,7 +73,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void onlyOneUniqueFailureWithThresholdTest() {
+    public void onlyOneUniqueFailureWithThresholdTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
         // Leave testConf with only one operation:
         problem.getConfig().getTestConfiguration().setOperations(Collections.singletonList(problem.getConfig().getTestConfiguration().getOperations().get(0)));
@@ -88,7 +89,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void allDifferentButAlmostEqualFailuresWithThresholdTest() {
+    public void allDifferentButAlmostEqualFailuresWithThresholdTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
         // Leave testConf with only one operation:
         problem.getConfig().getTestConfiguration().setOperations(Collections.singletonList(problem.getConfig().getTestConfiguration().getOperations().get(0)));
@@ -105,7 +106,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void allVeryDifferentFailuresWithThresholdTest() {
+    public void allVeryDifferentFailuresWithThresholdTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
         // Leave testConf with only one operation:
         problem.getConfig().getTestConfiguration().setOperations(Collections.singletonList(problem.getConfig().getTestConfiguration().getOperations().get(0)));
@@ -123,7 +124,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
     }
 
     @Test
-    public void noFailuresTest() {
+    public void noFailuresTest() throws RESTestException {
         RestfulAPITestSuiteGenerationProblem problem = createTestProblems().get(0);
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
