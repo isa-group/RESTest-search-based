@@ -77,31 +77,31 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 			while (index < possibleCrossovers.size() && !mutationApplied) {
 				switch (possibleCrossovers.get(index)) {
 					case "query":
-						if (!testCase1.getQueryParameters().isEmpty() || !testCase2.getQueryParameters().isEmpty()) {
+						if (!testCase1.getQueryParameters().isEmpty() && !testCase2.getQueryParameters().isEmpty()) {
 							doQueryCrossover(probability, testCase1, testCase2);
 							mutationApplied = true;
 						}
 						break;
 					case "header":
-						if (!testCase1.getHeaderParameters().isEmpty() || !testCase2.getHeaderParameters().isEmpty()) {
+						if (!testCase1.getHeaderParameters().isEmpty() && !testCase2.getHeaderParameters().isEmpty()) {
 							doHeadersCrossover(probability, testCase1, testCase2);
 							mutationApplied = true;
 						}
 						break;
 					case "form":
-						if (!testCase1.getFormParameters().isEmpty() || !testCase2.getFormParameters().isEmpty()) {
+						if (!testCase1.getFormParameters().isEmpty() && !testCase2.getFormParameters().isEmpty()) {
 							doFormCrossover(probability, testCase1, testCase2);
 							mutationApplied = true;
 						}
 						break;
 					case "path":
-						if (!testCase1.getPathParameters().isEmpty() || !testCase2.getPathParameters().isEmpty()) {
+						if (!testCase1.getPathParameters().isEmpty() && !testCase2.getPathParameters().isEmpty()) {
 							doPathCrossover(probability, testCase1, testCase2);
 							mutationApplied = true;
 						}
 						break;
 					case "body":
-						if ((testCase1.getBodyParameter() != null && !"".equals(testCase1.getBodyParameter())) || (testCase2.getBodyParameter() != null && !"".equals(testCase2.getBodyParameter()))) {
+						if ((testCase1.getBodyParameter() != null && !"".equals(testCase1.getBodyParameter())) && (testCase2.getBodyParameter() != null && !"".equals(testCase2.getBodyParameter()))) {
 							doBodyCrossover(probability, testCase1, testCase2);
 							mutationApplied = true;
 						}
@@ -132,11 +132,18 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 		int totalNumberOfVars= Math.min(parameters1.size(),parameters2.size());
 
 		// 2. Calculate the point to make the crossover
-		int crossoverPoint = pointRandomGenerator.getRandomValue(0, totalNumberOfVars - 1);
+		int crossoverPoint = pointRandomGenerator.getRandomValue(0, totalNumberOfVars==0 ? 0 : totalNumberOfVars - 1);
 
 		// 3. Apply the crossover to the parameters;
-		for(int i=0;i<=crossoverPoint;i++)
+		int previousSize = parameters1.size();
+		for(int i=0;i<=crossoverPoint;i++) {
+			if (parameters1.size() < previousSize) {
+				crossoverPoint--;
+				i--;
+			}
+			previousSize = parameters1.size();
 			doCrossover(parameters1.keySet().toArray(new String[0])[i], parameters1, parameters2);
+		}
 	}
 	
 	private void doCrossover(String param, Map<String, String> parameters1, Map<String, String> parameters2) {
