@@ -9,10 +9,7 @@ import es.us.isa.restest.util.RESTestException;
 import org.uma.jmetal.solution.impl.AbstractGenericSolution;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCase,RestfulAPITestSuiteGenerationProblem>{
 
@@ -139,6 +136,11 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
         for(int i=nVariables;i<problem.getNumberOfVariables();i++) {
         	this.getVariables().remove(this.getVariables().size()-1);
         }
+    }
+
+    public void setVariables(List<TestCase> testCases) {
+        getVariables().clear();
+        getVariables().addAll(testCases);
     }
     
     private int computeTestSuiteSize() {

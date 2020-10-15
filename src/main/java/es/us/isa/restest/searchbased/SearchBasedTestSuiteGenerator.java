@@ -119,13 +119,12 @@ public class SearchBasedTestSuiteGenerator {
         		new AddTestCaseMutation(0.1,generator),
         		new RemoveTestCaseMutation(0.1,generator),
                 new ReplaceTestCaseMutation(0.1,generator),
-    			new AddParameterMutation(0.01,generator),
-        		new RemoveParameterMutation(0.01,generator),
-        		new RandomParameterValueMutation(0.01,generator),
-        		new ResourceChangeMutation(0.01,generator)
+    			new AddParameterMutation(0.1,generator),
+        		new RemoveParameterMutation(0.1,generator),
+        		new RandomParameterValueMutation(0.1,generator)
         ));
     	AllCrossoverOperators crossover=new AllCrossoverOperators(Lists.newArrayList(
-    	        new UniformTestCaseCrossover(0.01),
+    	        new UniformTestCaseCrossover(0.1),
                 new SinglePointTestSuiteCrossover(0.1)
         ));
     	

@@ -42,12 +42,14 @@ public class AddParameterMutation extends AbstractMutationOperator {
                 if (getRandomGenerator().nextDouble() <= mutationProbability) {                    
                     doMutation(paramFeatures, testCase, solution);
                     if (!mutationApplied) mutationApplied = true;
+                    break; // Mutation applied, don't try again
                 }
             }
             if (mutationApplied) {
                 logger.info("Mutation probability fulfilled! Parameter added to test case.");
                 updateTestCaseFaultyReason(solution, testCase);
                 resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                break; // Mutation applied, don't try again
             }
         }
     }

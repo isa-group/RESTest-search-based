@@ -7,8 +7,7 @@ import io.qameta.allure.junit4.DisplayName;
 import org.junit.Test;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class AddTestCaseMutationTest extends AbstractSearchBasedTest{
 	@Test
@@ -25,7 +24,7 @@ public class AddTestCaseMutationTest extends AbstractSearchBasedTest{
 			RestfulAPITestSuiteSolution result = operator.execute(solution.copy());
 
 			// Assert: There is no changes due to the mutation:
-			assertTrue(result.equals(expectedResult));
+			assertEquals(result, expectedResult);
 		}
 	}
 	

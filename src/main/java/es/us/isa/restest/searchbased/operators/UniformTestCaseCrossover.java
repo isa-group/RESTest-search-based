@@ -67,12 +67,46 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 	}
 
 	private void doCrossover(double probability, TestCase testCase1, TestCase testCase2) {
-		doHeadersCrossover(probability,testCase1,testCase2);
-		doPathCrossover(probability,testCase1,testCase2);
-		doQueryCrossover(probability,testCase1,testCase2);
-		doFormCrossover(probability,testCase1,testCase2);
-		doBodyCrossover(probability,testCase1,testCase2);
-		//doAuthCrossover(probability,testCase1,testCase2);
+		List<String> possibleCrossovers = Arrays.asList("query", "header", "form", "path", "body");
+		Collections.shuffle(possibleCrossovers);
+
+		int index = 0;
+		while (index < possibleCrossovers.size() && !mutationApplied) {
+			switch (possibleCrossovers.get(index)) {
+				case "query":
+					if (!testCase1.getQueryParameters().isEmpty() || !testCase2.getQueryParameters().isEmpty()) {
+						doQueryCrossover(probability,testCase1,testCase2);
+						mutationApplied = true;
+					}
+					break;
+				case "header":
+					if (!testCase1.getHeaderParameters().isEmpty() || !testCase2.getHeaderParameters().isEmpty()) {
+						doHeadersCrossover(probability,testCase1,testCase2);
+						mutationApplied = true;
+					}
+					break;
+				case "form":
+					if (!testCase1.getFormParameters().isEmpty() || !testCase2.getFormParameters().isEmpty()) {
+						doFormCrossover(probability,testCase1,testCase2);
+						mutationApplied = true;
+					}
+					break;
+				case "path":
+					if (!testCase1.getPathParameters().isEmpty() || !testCase2.getPathParameters().isEmpty()) {
+						doPathCrossover(probability,testCase1,testCase2);
+						mutationApplied = true;
+					}
+					break;
+				case "body":
+					if ((testCase1.getBodyParameter() != null && !"".equals(testCase1.getBodyParameter())) || (testCase2.getBodyParameter() != null && !"".equals(testCase2.getBodyParameter()))) {
+						doBodyCrossover(probability,testCase1,testCase2);
+						mutationApplied = true;
+					}
+					break;
+				default:
+			}
+			index++;
+		}
 	}
 
 	private void doFormCrossover(double probability, TestCase testCase1, TestCase testCase2) {		

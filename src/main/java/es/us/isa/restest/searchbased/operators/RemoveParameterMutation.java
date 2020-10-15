@@ -50,6 +50,7 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
                 if (getRandomGenerator().nextDouble() <= mutationProbability) {
                     doMutation(param, testCase);
                     if (!mutationApplied) mutationApplied = true;
+                    break; // Mutation applied, don't try again
                 }
             }
 
@@ -57,6 +58,7 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
                 logger.info("Mutation probability fulfilled! Parameter removed from test case.");
                 updateTestCaseFaultyReason(solution, testCase);
                 resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                break; // Mutation applied, don't try again
             }
         }
     }

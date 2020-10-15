@@ -31,11 +31,8 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RandomParameterValueMutation.class.getName());
 
-    private AddParameterMutation parameterAdditionOperator;
-
     public RandomParameterValueMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         super(mutationProbability, randomGenerator);
-        parameterAdditionOperator = new AddParameterMutation(mutationProbability, randomGenerator);
     }
 
     @Override
@@ -43,13 +40,12 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
         for (TestCase testCase : solution.getVariables()) {
             mutationApplied = false;
             Collection<ParameterFeatures> parameters = getAllPresentParameters(testCase);
-            if (parameters.isEmpty()) {
-                parameterAdditionOperator.doMutation(probability, solution);
-            } else {
+            if (!parameters.isEmpty()) {
                 for (ParameterFeatures param : parameters) {
                     if (getRandomGenerator().nextDouble() <= probability) {                        
                         doMutation(param, testCase, solution);
                         if (!mutationApplied) mutationApplied = true;
+                        break; // Mutation applied, don't try again
                     }
                 }
             }
@@ -58,6 +54,7 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
                 logger.info("Mutation probability fulfilled! Parameter value changed in test case.");
                 updateTestCaseFaultyReason(solution, testCase);
                 resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                break; // Mutation applied, don't try again
             }
         }
     }
