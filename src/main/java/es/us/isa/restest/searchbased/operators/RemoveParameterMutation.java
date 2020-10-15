@@ -12,7 +12,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
 import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
@@ -44,21 +47,30 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
 
 	@Override
     protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) {
-        for (TestCase testCase : solution.getVariables()) {
-            mutationApplied = false;
-            for (ParameterFeatures param : getAllPresentParameters(testCase)) {
-                if (getRandomGenerator().nextDouble() <= mutationProbability) {
-                    doMutation(param, testCase);
-                    if (!mutationApplied) mutationApplied = true;
-                    break; // Mutation applied, don't try again
+        mutationApplied = false;
+        if (getRandomGenerator().nextDouble() <= mutationProbability) {
+            List<TestCase> testCases = new ArrayList<>(solution.getVariables());
+            Collections.shuffle(testCases);
+            TestCase testCase = null;
+
+            int index = 0;
+            while (index < testCases.size() && !mutationApplied) {
+                testCase = testCases.get(index);
+                List<ParameterFeatures> presentParams = new ArrayList<>(getAllPresentParameters(testCase));
+                Collections.shuffle(presentParams);
+
+                if (!presentParams.isEmpty()) {
+                    ParameterFeatures paramToChange = presentParams.get(0);
+                    doMutation(paramToChange, testCase);
+                    mutationApplied = true;
                 }
+                index++;
             }
 
-            if (mutationApplied) {
+            if (mutationApplied && testCase != null) {
                 logger.info("Mutation probability fulfilled! Parameter removed from test case.");
                 updateTestCaseFaultyReason(solution, testCase);
                 resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
-                break; // Mutation applied, don't try again
             }
         }
     }

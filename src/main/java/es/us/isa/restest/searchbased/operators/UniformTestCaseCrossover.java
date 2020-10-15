@@ -2,6 +2,8 @@ package es.us.isa.restest.searchbased.operators;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.testcases.TestResult;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.BoundedRandomGenerator;
@@ -67,45 +69,47 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 	}
 
 	private void doCrossover(double probability, TestCase testCase1, TestCase testCase2) {
-		List<String> possibleCrossovers = Arrays.asList("query", "header", "form", "path", "body");
-		Collections.shuffle(possibleCrossovers);
+		if(crossoverRandomGenerator.getRandomValue() < probability) {
+			List<String> possibleCrossovers = Arrays.asList("query", "header", "form", "path", "body");
+			Collections.shuffle(possibleCrossovers);
 
-		int index = 0;
-		while (index < possibleCrossovers.size() && !mutationApplied) {
-			switch (possibleCrossovers.get(index)) {
-				case "query":
-					if (!testCase1.getQueryParameters().isEmpty() || !testCase2.getQueryParameters().isEmpty()) {
-						doQueryCrossover(probability,testCase1,testCase2);
-						mutationApplied = true;
-					}
-					break;
-				case "header":
-					if (!testCase1.getHeaderParameters().isEmpty() || !testCase2.getHeaderParameters().isEmpty()) {
-						doHeadersCrossover(probability,testCase1,testCase2);
-						mutationApplied = true;
-					}
-					break;
-				case "form":
-					if (!testCase1.getFormParameters().isEmpty() || !testCase2.getFormParameters().isEmpty()) {
-						doFormCrossover(probability,testCase1,testCase2);
-						mutationApplied = true;
-					}
-					break;
-				case "path":
-					if (!testCase1.getPathParameters().isEmpty() || !testCase2.getPathParameters().isEmpty()) {
-						doPathCrossover(probability,testCase1,testCase2);
-						mutationApplied = true;
-					}
-					break;
-				case "body":
-					if ((testCase1.getBodyParameter() != null && !"".equals(testCase1.getBodyParameter())) || (testCase2.getBodyParameter() != null && !"".equals(testCase2.getBodyParameter()))) {
-						doBodyCrossover(probability,testCase1,testCase2);
-						mutationApplied = true;
-					}
-					break;
-				default:
+			int index = 0;
+			while (index < possibleCrossovers.size() && !mutationApplied) {
+				switch (possibleCrossovers.get(index)) {
+					case "query":
+						if (!testCase1.getQueryParameters().isEmpty() || !testCase2.getQueryParameters().isEmpty()) {
+							doQueryCrossover(probability, testCase1, testCase2);
+							mutationApplied = true;
+						}
+						break;
+					case "header":
+						if (!testCase1.getHeaderParameters().isEmpty() || !testCase2.getHeaderParameters().isEmpty()) {
+							doHeadersCrossover(probability, testCase1, testCase2);
+							mutationApplied = true;
+						}
+						break;
+					case "form":
+						if (!testCase1.getFormParameters().isEmpty() || !testCase2.getFormParameters().isEmpty()) {
+							doFormCrossover(probability, testCase1, testCase2);
+							mutationApplied = true;
+						}
+						break;
+					case "path":
+						if (!testCase1.getPathParameters().isEmpty() || !testCase2.getPathParameters().isEmpty()) {
+							doPathCrossover(probability, testCase1, testCase2);
+							mutationApplied = true;
+						}
+						break;
+					case "body":
+						if ((testCase1.getBodyParameter() != null && !"".equals(testCase1.getBodyParameter())) || (testCase2.getBodyParameter() != null && !"".equals(testCase2.getBodyParameter()))) {
+							doBodyCrossover(probability, testCase1, testCase2);
+							mutationApplied = true;
+						}
+						break;
+					default:
+				}
+				index++;
 			}
-			index++;
 		}
 	}
 
@@ -114,12 +118,9 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 	}
 
 	private void doBodyCrossover(double probability, TestCase testCase1, TestCase testCase2) {
-		if (crossoverRandomGenerator.getRandomValue() < probability) {
-			String body1=testCase1.getBodyParameter();
-			testCase1.setBodyParameter(testCase2.getBodyParameter());
-			testCase2.setBodyParameter(body1);
-		}
-		
+		String body1=testCase1.getBodyParameter();
+		testCase1.setBodyParameter(testCase2.getBodyParameter());
+		testCase2.setBodyParameter(body1);
 	}
 
 	private void doQueryCrossover(double probability, TestCase testCase1, TestCase testCase2) {
@@ -127,28 +128,15 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 	}
 
 	private void doCrossover(double probability,Map<String,String> parameters1,Map<String,String> parameters2) {
-		Set<String> processed=new HashSet<String>();	
-		List<String> paramsToProcess=new ArrayList<>();
-		for(String param:parameters1.keySet()) {
-			processed.add(param);
-			if(crossoverRandomGenerator.getRandomValue() < probability) {
-				paramsToProcess.add(param);
-				if (!mutationApplied) mutationApplied = true;
-			}
-		}
-		for(String param:paramsToProcess) {			
-			doCrossover(param,parameters1,parameters2);
-		}
-		paramsToProcess.clear(); 
-		for(String param:parameters2.keySet()) 
-			if(crossoverRandomGenerator.getRandomValue() < probability && !processed.contains(param)) {
-				paramsToProcess.add(param);
-				if (!mutationApplied) mutationApplied = true;
-			}
-		for(String param:paramsToProcess) {
-			processed.add(param);
-			doCrossover(param,parameters2,parameters1);
-		}
+		// 1. Get the total number of params
+		int totalNumberOfVars= Math.min(parameters1.size(),parameters2.size());
+
+		// 2. Calculate the point to make the crossover
+		int crossoverPoint = pointRandomGenerator.getRandomValue(0, totalNumberOfVars - 1);
+
+		// 3. Apply the crossover to the parameters;
+		for(int i=0;i<=crossoverPoint;i++)
+			doCrossover(parameters1.keySet().toArray(new String[0])[i], parameters1, parameters2);
 	}
 	
 	private void doCrossover(String param, Map<String, String> parameters1, Map<String, String> parameters2) {

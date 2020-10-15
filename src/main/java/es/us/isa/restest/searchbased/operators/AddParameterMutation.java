@@ -15,9 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.javatuples.Pair;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
 import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
@@ -36,20 +34,30 @@ public class AddParameterMutation extends AbstractMutationOperator {
         
     @Override
     protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) {
-        for (TestCase testCase : solution.getVariables()) {
-            mutationApplied = false;
-            for (ParameterFeatures paramFeatures : getNonPresentParameters(testCase,solution)) {
-                if (getRandomGenerator().nextDouble() <= mutationProbability) {                    
-                    doMutation(paramFeatures, testCase, solution);
-                    if (!mutationApplied) mutationApplied = true;
-                    break; // Mutation applied, don't try again
+        mutationApplied = false;
+        if (getRandomGenerator().nextDouble() <= mutationProbability) {
+            List<TestCase> testCases = new ArrayList<>(solution.getVariables());
+            Collections.shuffle(testCases);
+            TestCase testCase = null;
+
+            int index = 0;
+            while (index < testCases.size() && !mutationApplied) {
+                testCase = testCases.get(index);
+                List<ParameterFeatures> nonPresentParams = new ArrayList<>(getNonPresentParameters(testCase, solution));
+                Collections.shuffle(nonPresentParams);
+
+                if (!nonPresentParams.isEmpty()) {
+                    ParameterFeatures paramToAdd = nonPresentParams.get(0);
+                    doMutation(paramToAdd, testCase, solution);
+                    mutationApplied = true;
                 }
+                index++;
             }
-            if (mutationApplied) {
+
+            if (mutationApplied && testCase != null) {
                 logger.info("Mutation probability fulfilled! Parameter added to test case.");
                 updateTestCaseFaultyReason(solution, testCase);
                 resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
-                break; // Mutation applied, don't try again
             }
         }
     }
