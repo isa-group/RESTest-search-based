@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class UniqueElements extends RestfulAPITestingObjectiveFunction {
 
     private Element elementType;
-    private double similarityThreshold = 1; // Used to compare how different elements are
+    private double similarityThreshold = 1; // Used to compare how different elements are. The lower, the more diverse elements will be
     private SimilarityMeter similarityMeter = null;
     private boolean normalize; // UniqueElements measured in [0,1], to avoid bias due to test suite size
 

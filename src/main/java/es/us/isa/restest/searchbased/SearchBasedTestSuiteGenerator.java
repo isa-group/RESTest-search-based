@@ -202,6 +202,7 @@ public class SearchBasedTestSuiteGenerator {
         // Execute best test suite with RESTestRunner
         if (!bestSolution.getVariables().get(0).getEnableOracles()) {
             for (TestCase testCase : bestSolution.getVariables()) {
+                testCase.setEnableOracles(true);
                 SolutionUtils.updateTestCaseFaultyReason(bestSolution, testCase);
             }
         }
