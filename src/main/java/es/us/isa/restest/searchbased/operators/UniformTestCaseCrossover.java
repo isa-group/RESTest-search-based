@@ -2,8 +2,6 @@ package es.us.isa.restest.searchbased.operators;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
-import es.us.isa.restest.testcases.TestResult;
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.BoundedRandomGenerator;
@@ -11,8 +9,8 @@ import org.uma.jmetal.util.pseudorandom.RandomGenerator;
 
 import java.util.*;
 
-import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
-import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
+import static es.us.isa.restest.util.SolutionUtils.resetTestResult;
+import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
 
 public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 

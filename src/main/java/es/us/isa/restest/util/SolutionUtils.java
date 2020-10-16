@@ -1,4 +1,4 @@
-package es.us.isa.restest.searchbased.operators;
+package es.us.isa.restest.util;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
@@ -11,9 +11,9 @@ import static es.us.isa.restest.testcases.TestCase.checkFulfillsDependencies;
 /**
  * This class contains common utilities to all mutation operators
  */
-public class Utils {
+public class SolutionUtils {
 
-    static void updateTestCaseFaultyReason(RestfulAPITestSuiteSolution solution, TestCase testCase) {
+    public static void updateTestCaseFaultyReason(RestfulAPITestSuiteSolution solution, TestCase testCase) {
         if (testCase.getEnableOracles()) {
             List<String> faultyReasons = testCase.getValidationErrors(OASAPIValidator.getValidator(solution.getProblem().getApiUnderTest()));
             if (!faultyReasons.isEmpty()) {
@@ -31,7 +31,7 @@ public class Utils {
         }
     }
 
-    static void resetTestResult(String testCaseId, RestfulAPITestSuiteSolution solution) {
+    public static void resetTestResult(String testCaseId, RestfulAPITestSuiteSolution solution) {
         solution.setTestResult(testCaseId, null);
     }
 }

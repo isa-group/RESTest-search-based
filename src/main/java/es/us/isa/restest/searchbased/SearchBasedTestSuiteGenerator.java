@@ -6,7 +6,6 @@ package es.us.isa.restest.searchbased;
 import com.google.common.collect.Lists;
 import es.us.isa.restest.configuration.TestConfigurationIO;
 import es.us.isa.restest.configuration.pojos.TestConfigurationObject;
-import es.us.isa.restest.runners.RESTestRunner;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.algorithms.NSGAII;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
@@ -16,6 +15,7 @@ import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.util.CURLCommandGenerator;
+import es.us.isa.restest.util.SolutionUtils;
 import es.us.isa.restest.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -199,7 +199,13 @@ public class SearchBasedTestSuiteGenerator {
                  bestSolution = suite;
     	 }
 
-    	 // Execute best test suite with RESTestRunner
+        // Execute best test suite with RESTestRunner
+        if (!bestSolution.getVariables().get(0).getEnableOracles()) {
+            for (TestCase testCase : bestSolution.getVariables()) {
+                SolutionUtils.updateTestCaseFaultyReason(bestSolution, testCase);
+            }
+        }
+        logger.info("Executing best test suite with oracles enabled...");
         restestRunner.run(bestSolution.getVariables());
     }
 

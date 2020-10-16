@@ -15,12 +15,11 @@ import org.javatuples.Pair;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
-import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
+import static es.us.isa.restest.util.SolutionUtils.resetTestResult;
+import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
 
 /**
  *
