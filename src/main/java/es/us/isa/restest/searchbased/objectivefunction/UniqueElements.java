@@ -34,14 +34,14 @@ public class UniqueElements extends RestfulAPITestingObjectiveFunction {
 
     // Mode 1
     public UniqueElements(Element element, boolean normalize) {
-        super(ObjectiveFunctionType.MAXIMIZATION,true,true);
+        super(ObjectiveFunctionType.MAXIMIZATION,element != Element.INPUT,element == Element.FAILURE);
         elementType = element;
         this.normalize = normalize;
     }
 
     // Mode 2
     public UniqueElements(Element element, SimilarityMeter.METRIC similarityMetric, double similarityThreshold, boolean normalize) {
-        super(ObjectiveFunctionType.MAXIMIZATION,true,true);
+        super(ObjectiveFunctionType.MAXIMIZATION,element != Element.INPUT,element == Element.FAILURE);
         similarityMeter = new SimilarityMeter(similarityMetric);
         assert(similarityThreshold < 1);
         this.similarityThreshold = similarityThreshold;
