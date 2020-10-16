@@ -15,7 +15,7 @@ import java.util.Collections;
 import static es.us.isa.restest.searchbased.objectivefunction.SimilarityMeter.METRIC.*;
 import static org.junit.Assert.assertEquals;
 
-public class UniqueFailuresTest extends AbstractSearchBasedTest {
+public class UniqueElementsTest extends AbstractSearchBasedTest {
 
     @Test
     public void onlyOneUniqueFailureTest() throws RESTestException {
@@ -28,7 +28,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false));
         }
 
-        UniqueFailures objFunc = new UniqueFailures();
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
         Double expectedValue=1.0;
         assertEquals("All failures are the same, the function should return 1", expectedValue, objFunc.evaluate(solution));
     }
@@ -51,7 +51,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(testId, new TestResult(testId, "400", "Same body", "application/json", false));
         });
 
-        UniqueFailures objFunc = new UniqueFailures();
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
         Double expectedValue=8.0;
         assertEquals("All failures are the same, but from different operations/ status codes, the function should return 8", expectedValue, objFunc.evaluate(solution));
     }
@@ -67,7 +67,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", tc.getId(), "application/json", false));
         }
 
-        UniqueFailures objFunc = new UniqueFailures();
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
         Double expectedValue=4.0;
         assertEquals("All failures are different, the function should return 4", expectedValue, objFunc.evaluate(solution));
     }
@@ -83,7 +83,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false));
         }
 
-        UniqueFailures objFunc = new UniqueFailures(JACCARD, 0.9);
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, JACCARD, 0.9, false);
         Double expectedValue=1.0;
         assertEquals("All failures are the same, the function should return 1", expectedValue, objFunc.evaluate(solution));
     }
@@ -100,7 +100,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body Same body Same body Same body Same body Same body "+tc.getId().charAt(tc.getId().length()-i-1), "application/json", false));
         }
 
-        UniqueFailures objFunc = new UniqueFailures(LEVENSHTEIN, 0.9);
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, LEVENSHTEIN, 0.9, false);
         Double expectedValue=1.0;
         assertEquals("All failures are almost the same, the function should return 1", expectedValue, objFunc.evaluate(solution));
     }
@@ -118,7 +118,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", bodies[i], "application/json", false));
         }
 
-        UniqueFailures objFunc = new UniqueFailures(JARO_WINKLER, 0.1);
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, JARO_WINKLER, 0.1, false);
         Double expectedValue=4.0;
         assertEquals("All failures are very different, the function should return 4", expectedValue, objFunc.evaluate(solution));
     }
@@ -132,7 +132,7 @@ public class UniqueFailuresTest extends AbstractSearchBasedTest {
             solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "200", "Same body", "application/json", true));
         }
 
-        UniqueFailures objFunc = new UniqueFailures();
+        UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
         Double expectedValue=0.0;
         assertEquals("There are no failures, the function should return 0", expectedValue, objFunc.evaluate(solution));
     }

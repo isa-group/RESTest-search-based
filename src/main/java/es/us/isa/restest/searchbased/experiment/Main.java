@@ -15,7 +15,6 @@ import es.us.isa.restest.reporting.StatsReportManager;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.SearchBasedTestSuiteGenerator;
 import es.us.isa.restest.searchbased.objectivefunction.*;
-import es.us.isa.restest.searchbased.operators.*;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutedRequests;
 import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
@@ -65,7 +64,7 @@ public class Main {
     };
     // Objective functions: ORDER IS IMPORTANT!!! First one will be used to determine the "best" test suite
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Lists.newArrayList(
-            new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Diversity.ELEMENT.INPUT)
+            new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.INPUT, false)
 //                new SuiteSize()
     );
 
