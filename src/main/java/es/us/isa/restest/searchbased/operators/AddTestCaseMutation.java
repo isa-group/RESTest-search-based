@@ -22,11 +22,17 @@ public class AddTestCaseMutation extends AbstractMutationOperator {
 			return;
 		// If the size of the suite is not maximal
 		if(solution.getVariables().size()<solution.getProblem().getMaxTestSuiteSize() && getRandomGenerator().nextDouble() <= mutationProbability) {
-			// We add a random test case to the suite:
-			TestCase newTestCase = solution.getProblem().createRandomTestCase();
-			solution.addVariable(newTestCase);
-			solution.setTestResult(newTestCase.getId(), null);
-			logger.info("Mutation probability fulfilled! Test case added to test suite.");
+			// We add random test cases to the suite:
+			int maxTestCasesToAdd = Math.min(
+					solution.getProblem().getMaxTestSuiteSize() - solution.getNumberOfVariables(),
+					(int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables())
+			);
+			for (int index=0; index < maxTestCasesToAdd; index++) {
+				TestCase newTestCase = solution.getProblem().createRandomTestCase();
+				solution.addVariable(newTestCase);
+				solution.setTestResult(newTestCase.getId(), null);
+				logger.info("Mutation probability fulfilled! Test case added to test suite.");
+			}
 		}
 	}
 		

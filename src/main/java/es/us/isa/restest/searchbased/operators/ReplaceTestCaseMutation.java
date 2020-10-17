@@ -17,13 +17,16 @@ public class ReplaceTestCaseMutation extends AbstractMutationOperator {
 
 	protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) throws RESTestException {
 		if(getRandomGenerator().nextDouble() <= mutationProbability) {
-			int index= getRandomGenerator().nextInt(0, solution.getVariables().size()-1);
-			TestCase replacedTestCase = solution.getVariable(index);
-			TestCase insertedTestCase = solution.getProblem().createRandomTestCase();
-			solution.setVariable(index, insertedTestCase);
-			solution.removeTestResult(replacedTestCase.getId());
-			solution.setTestResult(insertedTestCase.getId(), null);
-			logger.info("Mutation probability fulfilled! Test case replaced in test suite.");
+			int maxTestCasesToReplace = (int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
+			for (int index=0; index < maxTestCasesToReplace; index++) {
+				int replacedTestCaseIndex = getRandomGenerator().nextInt(0, solution.getVariables().size() - 1);
+				TestCase replacedTestCase = solution.getVariable(replacedTestCaseIndex);
+				TestCase insertedTestCase = solution.getProblem().createRandomTestCase();
+				solution.setVariable(replacedTestCaseIndex, insertedTestCase);
+				solution.removeTestResult(replacedTestCase.getId());
+				solution.setTestResult(insertedTestCase.getId(), null);
+				logger.info("Mutation probability fulfilled! Test case replaced in test suite.");
+			}
 		}
 		
 	}

@@ -22,12 +22,18 @@ public class RemoveTestCaseMutation extends AbstractMutationOperator {
 		// If the size of the suite is not maximal
 		if (solution.getVariables().size()>solution.getProblem().getMinTestSuiteSize() 
 				&& getRandomGenerator().nextDouble() <= mutationProbability) {
-			// We remove one of the test cases of the suite chosen randomly
-			int removedTestCaseIndex = getRandomGenerator().nextInt(0, solution.getVariables().size()-1);
-			TestCase removedTestCase = solution.getVariable(removedTestCaseIndex);
-			solution.removeVariable(removedTestCaseIndex);
-			solution.removeTestResult(removedTestCase.getId());
-			logger.info("Mutation probability fulfilled! Test case removed from test suite.");
+			// We remove test cases of the suite chosen randomly
+			int maxTestCasesToRemove = Math.min(
+					solution.getNumberOfVariables() - solution.getProblem().getMinTestSuiteSize(),
+					(int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables())
+			);
+			for (int index=0; index < maxTestCasesToRemove; index++) {
+				int removedTestCaseIndex = getRandomGenerator().nextInt(0, solution.getVariables().size() - 1);
+				TestCase removedTestCase = solution.getVariable(removedTestCaseIndex);
+				solution.removeVariable(removedTestCaseIndex);
+				solution.removeTestResult(removedTestCase.getId());
+				logger.info("Mutation probability fulfilled! Test case removed from test suite.");
+			}
 		}
 	}
 

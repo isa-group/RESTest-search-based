@@ -39,14 +39,13 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
 
     @Override
     protected void doMutation(double probability, RestfulAPITestSuiteSolution solution) {
-        mutationApplied = false;
         if (getRandomGenerator().nextDouble() <= probability) {
+            int maxTestCasesToMutate = (int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
             List<TestCase> testCases = new ArrayList<>(solution.getVariables());
             Collections.shuffle(testCases);
-            TestCase testCase = null;
+            TestCase testCase;
 
-            int index = 0;
-            while (index < testCases.size() && !mutationApplied) {
+            for (int index=0; index < maxTestCasesToMutate; index++) {
                 testCase = testCases.get(index);
                 List<ParameterFeatures> presentParams = new ArrayList<>(getAllPresentParameters(testCase));
                 Collections.shuffle(presentParams);
@@ -54,15 +53,11 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
                 if (!presentParams.isEmpty()) {
                     ParameterFeatures paramToChange = presentParams.get(0);
                     doMutation(paramToChange, testCase, solution);
-                    mutationApplied = true;
-                }
-                index++;
-            }
 
-            if (mutationApplied && testCase != null) {
-                logger.info("Mutation probability fulfilled! Parameter value changed in test case.");
-                updateTestCaseFaultyReason(solution, testCase);
-                resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                    logger.info("Mutation probability fulfilled! Parameter value changed in test case.");
+                    updateTestCaseFaultyReason(solution, testCase);
+                    resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                }
             }
         }
     }

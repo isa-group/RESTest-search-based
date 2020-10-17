@@ -27,11 +27,13 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
     private double mutationProbability;
     private PseudoRandomGenerator randomGenerator;
     protected boolean mutationApplied;
+    protected double maxMutationsRatio; // Max percentage of elements to mutate in the test suite
     public List<String> securityParamNames=Lists.newArrayList("Authorization","Application-Authorization","auth-token","access_token"); 
 
     public AbstractMutationOperator(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         this.mutationProbability = mutationProbability;
         this.randomGenerator = randomGenerator;
+        this.maxMutationsRatio = 0.1;
     }
 
     /* Getter */
