@@ -195,7 +195,13 @@ public class SearchBasedTestSuiteGenerator {
     		 }
     		 index++;
     		 // Update best solution according to best value of preferred objective function (first one in the array):
-             if (suite.getObjective(0) < bestSolution.getObjective(0))
+             if (suite.getObjective(0) < bestSolution.getObjective(0)
+                     ||
+                     (suite.getObjective(0) == bestSolution.getObjective(0)
+                            &&
+                     problem.getObjectiveFunctions().size() > 1
+                            &&
+                     suite.getObjective(1) < bestSolution.getObjective(1)))
                  bestSolution = suite;
     	 }
 
