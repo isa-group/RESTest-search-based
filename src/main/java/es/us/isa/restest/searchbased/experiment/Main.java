@@ -28,8 +28,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.commons.lang3.RandomUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static es.us.isa.restest.searchbased.terminationcriteria.Or.or;
@@ -45,40 +48,43 @@ import static es.us.isa.restest.util.Timer.TestStep.ALL;
 public class Main {
 
     // Experiment parameters
-    private static int minTestSuiteSize = 10;
-    private static int maxTestSuiteSize = 10;
+    private static int minTestSuiteSize = 5;
+    private static int maxTestSuiteSize = 5;
     private static int populationSize = 10; // Population size for the evolutionary algorithm
-    private static int maxEvaluations = 500;
+    private static int maxEvaluations = 250;
     private static int maxExecutedRequests=100;
     private static double[] mutationProbabilities = {
-            0.1, // AddTestCaseMutation
-            0.1, // RemoveTestCaseMutation
-            0.1, // ReplaceTestCaseMutation
-            0.1, // AddParameterMutation
-            0.1, // RemoveParameterMutation
-            0.1  // RandomParameterValueMutation
+            0.05, // AddTestCaseMutation
+            0.05, // RemoveTestCaseMutation
+            0.05, // ReplaceTestCaseMutation
+            0.05, // AddParameterMutation
+            0.05, // RemoveParameterMutation
+            0.05  // RandomParameterValueMutation
     };
     private static double[] crossoverProbabilities = {
-            0.1, // UniformTestCaseCrossover
-            0.1  // SinglePointTestSuiteCrossover
+            0.05, // UniformTestCaseCrossover
+            0.8  // SinglePointTestSuiteCrossover
     };
     // Objective functions: ORDER IS IMPORTANT!!! First one will be used to determine the "best" test suite
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Lists.newArrayList(
+            new BalanceOfValidTestsRatio(0.7),
             new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.INPUT, false)
 //                new SuiteSize()
     );
 
     // Termination criterion
-    private static TerminationCriterion terminationCriterion = or(
-            new MaxEvaluations(maxEvaluations),
-            new MaxExecutedRequests(maxExecutedRequests)
-    );
+    private static TerminationCriterion terminationCriterion =
+            new MaxEvaluations(maxEvaluations);
+//            or(
+//                new MaxEvaluations(maxEvaluations),
+//                new MaxExecutedRequests(maxExecutedRequests)
+//            );
 
     // API parameters
     private static OpenAPISpecification spec;
-    private static String OAISpecPath = "src/test/resources/languagetool/swagger.json"; // Path to OAS specification file
-    private static String confPath = "src/test/resources/languagetool/testConf.yaml"; // Path to test configuration file
-    private static String experimentName = "languagetool_prelim" + "_" + RandomStringUtils.randomAlphanumeric(10); // Experiment name
+    private static String OAISpecPath = "src/test/resources/Yelp/swagger.yaml"; // Path to OAS specification file
+    private static String confPath = "src/test/resources/Yelp/testConf.yaml"; // Path to test configuration file
+    private static String experimentName = "yelp_prelim" + "_" + RandomStringUtils.randomAlphanumeric(10); // Experiment name
     private static String targetDir = "src/generation/java/" + experimentName; // Directory where tests will be generated.
     private static String packageName = experimentName;							// Package name
     private static String testClassName = experimentName.substring(0,1).toUpperCase() + experimentName.substring(1); // Name of the class where tests will be written.
@@ -119,12 +125,34 @@ public class Main {
             generator.run();
             Timer.stopCounting(ALL);
             generateTimeReport();
-
             logger.info("Results saved to folder {}", experimentName);
+            generateExperimentDocument(statsReportManager.getTestDataDir() + "/" + experimentName + ".txt");
         } catch (IOException ex) {
             logger.error(ex);
         }
 
+    }
+
+    private static void generateExperimentDocument(String path) throws IOException {
+        String content =
+                "experimentName: " + experimentName + "\n" +
+                "minTestSuiteSize: " + minTestSuiteSize + "\n" +
+                "maxTestSuiteSize: " + maxTestSuiteSize + "\n" +
+                "populationSize: " + populationSize + "\n" +
+                "maxEvaluations: " + maxEvaluations + "\n" +
+                "maxExecutedRequests: " + maxExecutedRequests + "\n" +
+                "mutationProbabilities: " + Arrays.toString(mutationProbabilities) + "\n" +
+                "crossoverProbabilities: " + Arrays.toString(crossoverProbabilities) + "\n" +
+                "objectiveFunctions: \n";
+
+        for (RestfulAPITestingObjectiveFunction objFunc: objectiveFunctions)
+            content += " - " + objFunc.toString() + "\n";
+
+        content += "terminationCriterion: " + terminationCriterion.getClass().getSimpleName();
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+        writer.write(content);
+        writer.close();
     }
 
     // Create a writer for RESTAssured
