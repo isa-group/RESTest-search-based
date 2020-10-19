@@ -39,6 +39,7 @@ import org.uma.jmetal.util.pseudorandom.impl.MersenneTwisterGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static es.us.isa.restest.util.Timer.TestStep.TEST_SUITE_GENERATION;
@@ -59,6 +60,8 @@ public class SearchBasedTestSuiteGenerator {
     private final List<ExperimentProblem<RestfulAPITestSuiteSolution>> problems;
     List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms;
     ExperimentBuilder<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>> experimentBuilder;
+
+    private RestfulAPITestSuiteSolution bestSolution;
     
     public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions, String targetPath, long seed, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities,TerminationCriterion tc, SearchBasedRunner runner) {
     	this(spec, configFilePath, experimentName, objectiveFunctions,targetPath, seed,null,populationSize, mutationProbabilities, crossoverProbabilities,tc, runner);
@@ -182,7 +185,7 @@ public class SearchBasedTestSuiteGenerator {
     	 JMetalLogger.logger.info("Objectives values have been written to file FUN.tsv");
     	 JMetalLogger.logger.info("Variables values have been written to file VAR.tsv");
     	 int index=1;
-         RestfulAPITestSuiteSolution bestSolution = suites.get(0);
+         bestSolution = suites.get(0);
     	 for(RestfulAPITestSuiteSolution suite:suites) {
     		 JMetalLogger.logger.info("TestSuite "+index);
     		 for(int i=0;i<suite.getNumberOfObjectives();i++) {
@@ -311,5 +314,13 @@ public class SearchBasedTestSuiteGenerator {
     public List<ExperimentProblem<RestfulAPITestSuiteSolution>> getProblems() {
 		return problems;
 	}
+
+	public RestfulAPITestSuiteGenerationProblem getProblem() {
+        return problem;
+    }
+
+    public RestfulAPITestSuiteSolution getBestSolution() {
+        return bestSolution;
+    }
     
 }

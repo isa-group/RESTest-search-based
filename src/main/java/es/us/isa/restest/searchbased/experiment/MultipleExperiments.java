@@ -15,28 +15,29 @@ import es.us.isa.restest.reporting.StatsReportManager;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.SearchBasedTestSuiteGenerator;
 import es.us.isa.restest.searchbased.objectivefunction.*;
+import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutedRequests;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutionTime;
 import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
+import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.testcases.TestResult;
 import es.us.isa.restest.testcases.writers.IWriter;
 import es.us.isa.restest.testcases.writers.RESTAssuredWriter;
+import es.us.isa.restest.util.CSVManager;
 import es.us.isa.restest.util.PropertyManager;
+import es.us.isa.restest.util.TestManager;
 import es.us.isa.restest.util.Timer;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static es.us.isa.restest.util.FileManager.createDir;
 import static es.us.isa.restest.util.FileManager.deleteDir;
@@ -48,6 +49,9 @@ import static es.us.isa.restest.util.Timer.TestStep.ALL;
  * @author Alberto Martin-Lopez
  */
 public class MultipleExperiments {
+
+    // Final report to be generated:
+    private static List<ExperimentReport> experimentReports = new ArrayList<>();
 
     // Experiment parameters
     private static int[] minTestSuiteSizeArray = {100, 200, 500}; // These sizes can be justified with EvoMaster
@@ -194,7 +198,7 @@ public class MultipleExperiments {
                                                 Timer.stopCounting(ALL);
                                                 generateTimeReport();
                                                 logger.info("Results saved to folder {}", experimentName);
-                                                generateExperimentDocument(statsReportManager.getTestDataDir() + "/" + experimentName + ".txt");
+                                                experimentReports.add(getExperimentReport(generator, statsReportManager));
                                             } catch (IOException ex) {
                                                 logger.error(ex);
                                             }
@@ -209,28 +213,46 @@ public class MultipleExperiments {
             }
         }
 
-
         logger.info("A total of {} experiment folders have been generated:\n{}", experimentNames.size(), String.join("\n", experimentNames));
+
+        String reportPath = "target/test-data/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10) + ".csv";
+        exportExperimentReports(reportPath);
+
+        logger.info("Generated experiment report in the following path: {}", reportPath);
     }
 
-    private static void generateExperimentDocument(String path) throws IOException {
-        String content =
-                "experimentName: " + experimentName + "\n" +
-                "minTestSuiteSize: " + minTestSuiteSize + "\n" +
-                "maxTestSuiteSize: " + maxTestSuiteSize + "\n" +
-                "populationSize: " + populationSize + "\n" +
-                "mutationProbabilities: " + Arrays.toString(mutationProbabilities) + "\n" +
-                "crossoverProbabilities: " + Arrays.toString(crossoverProbabilities) + "\n" +
-                "objectiveFunctions: \n";
+    private static void exportExperimentReports(String path) {
+        CSVManager.createCSVwithHeader(path, ExperimentReport.getCsvHeader());
+        experimentReports.forEach(e -> CSVManager.writeCSVRow(path, e.getCsvRow()));
+    }
 
-        for (RestfulAPITestingObjectiveFunction objFunc: objectiveFunctions)
-            content += " - " + objFunc.toString() + "\n";
+    private static ExperimentReport getExperimentReport(SearchBasedTestSuiteGenerator generator, StatsReportManager statsReportManager) throws IOException {
+        List<TestResult> testResults = TestManager.getTestResults(statsReportManager.getTestDataDir() + "/test-results.csv");
 
-        content += "terminationCriterion: " + terminationCriterion.toString();
-
-        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-        writer.write(content);
-        writer.close();
+        return new ExperimentReport(experimentName)
+                .withMinTestSuiteSize(minTestSuiteSize)
+                .withMaxTestSuiteSize(maxTestSuiteSize)
+                .withPopulationSize(populationSize)
+                .withMutationProbabilities(mutationProbabilities)
+                .withCrossoverProbabilities(crossoverProbabilities)
+                .withObjectiveFunctions(objectiveFunctions.stream().map(of -> of.toString()).toArray(String[]::new))
+                .withTerminationCriterion(terminationCriterion.toString())
+                .withTime(Timer.getCounters().get(ALL.getName()).get(0))
+                .withExecutedRequests(generator.getProblem().getTestCasesExecuted() + generator.getBestSolution().getNumberOfVariables())
+                .withApiCoverage(statsReportManager.getCoverageMeter().getTotalCoverage())
+                .withTestSuiteSize(generator.getBestSolution().getNumberOfVariables())
+                .withNominalTestCases((int)generator.getBestSolution().getVariables().stream().filter(tc -> !tc.getFaulty()).count())
+                .withFaultyTestCases((int)generator.getBestSolution().getVariables().stream().filter(TestCase::getFaulty).count())
+                .withFaultyTestCasesDueToParameters((int)generator.getBestSolution().getVariables().stream().filter(tc -> tc.getFaultyReason().contains("individual_parameter_constraint")).count())
+                .withFaultyTestCasesDueToDependencies((int)generator.getBestSolution().getVariables().stream().filter(tc -> tc.getFaultyReason().contains("inter_parameter_dependency")).count())
+                .withSuccessfulTestResults((int)testResults.stream().filter(TestResult::getPassed).count())
+                .withFailedTestResults((int)testResults.stream().filter(tr -> !tr.getPassed()).count())
+                .withFailedTestResults5XX((int)testResults.stream().filter(tr -> Integer.parseInt(tr.getStatusCode()) >= 500).count())
+                .withFailedTestResultsNominal4XX((int)testResults.stream().filter(tr -> tr.getFailReason().contains("input was correct")).count())
+                .withFailedTestResultsFaultyParameters2XX((int)testResults.stream().filter(tr -> tr.getFailReason().contains("individual_parameter_constraint")).count())
+                .withFailedTestResultsFaultyDependencies2XX((int)testResults.stream().filter(tr -> tr.getFailReason().contains("inter_parameter_dependency")).count())
+                .withFailedTestResultsSwagger((int)testResults.stream().filter(tr -> tr.getFailReason().contains("Swagger validation")).count())
+                .withDifferentFailures((int)testResults.stream().filter(tr -> !tr.getPassed()).map(TestResult::getResponseBody).distinct().count());
     }
 
     // Create a writer for RESTAssured
