@@ -158,7 +158,7 @@ public class MultipleExperiments {
                                             packageName = experimentName;							// Package name
                                             testClassName = experimentName.substring(0,1).toUpperCase() + experimentName.substring(1); // Name of the class where tests will be written.
 
-                                            long seed = RandomUtils.nextLong();
+                                            seed = RandomUtils.nextLong();
 
                                             Timer.resetCounters();
                                             Timer.startCounting(ALL);
