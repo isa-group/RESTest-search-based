@@ -90,4 +90,12 @@ public class Diversity extends RestfulAPITestingObjectiveFunction {
         logEvaluation(globalDiversity);
         return globalDiversity;
     }
+
+    public String toString() {
+        return getClass().getSimpleName() + " - "
+                + similarityMeter.getSimilarityMetric() + ", "
+                + elementType + ", "
+                + normalize;
+    }
+
 }

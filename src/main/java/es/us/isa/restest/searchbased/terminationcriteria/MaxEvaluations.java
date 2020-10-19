@@ -19,4 +19,8 @@ public class MaxEvaluations implements TerminationCriterion {
 		return t.getEvaluations()>=maxEvaluations;
 	}
 
+	public String toString() {
+		return getClass().getSimpleName() + " - " + maxEvaluations;
+	}
+
 }

@@ -19,4 +19,8 @@ public class MaxExecutedRequests implements TerminationCriterion {
 		return t.getProblem().getTestCasesExecuted()>=maxRequestsToBeExecuted;
 	}
 
+	public String toString() {
+		return getClass().getSimpleName() + " - " + maxRequestsToBeExecuted;
+	}
+
 }

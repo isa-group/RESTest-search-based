@@ -39,6 +39,9 @@ public class BalanceOfValidTestsRatio extends RestfulAPITestingObjectiveFunction
 	public double getTargetRatio() {
 		return targetRatio;
 	}
-	
+
+	public String toString() {
+		return getClass().getSimpleName() + " - " + targetRatio;
+	}
     
 }

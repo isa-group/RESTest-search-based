@@ -26,6 +26,10 @@ public class MaxExecutionTime implements TerminationCriterion{
 		return now - start >= duration;
 	}
 
+	public String toString() {
+		return getClass().getSimpleName() + " - " + duration;
+	}
+
 	public enum TimeUnit {
 		MILLISECONDS(1),
 		SECONDS(1000),
