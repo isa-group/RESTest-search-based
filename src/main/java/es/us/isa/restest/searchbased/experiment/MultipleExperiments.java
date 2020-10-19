@@ -148,8 +148,8 @@ public class MultipleExperiments {
                                     objectiveFunctions = n;
                                     for (TerminationCriterion o : terminationCriterionArray) {
                                         terminationCriterion = o;
-                                        if (terminationCriterion instanceof MaxExecutedRequests &&
-                                                objectiveFunctions.stream().anyMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution)) {
+                                        if (!(terminationCriterion instanceof MaxExecutedRequests &&
+                                                objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
 
                                             // API parameters
                                             experimentName = experimentBaseName + RandomStringUtils.randomAlphanumeric(10); // Experiment name

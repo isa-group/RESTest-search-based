@@ -132,7 +132,7 @@ public class UniqueElements extends RestfulAPITestingObjectiveFunction {
 
     public String toString() {
         return getClass().getSimpleName() + " - "
-                + similarityMeter.getSimilarityMetric() + ", "
+                + (similarityMeter != null ? similarityMeter.getSimilarityMetric() : "null") + ", "
                 + similarityThreshold + ", "
                 + elementType + ", "
                 + normalize;
