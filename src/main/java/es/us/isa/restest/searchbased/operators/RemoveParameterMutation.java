@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,34 +27,21 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RemoveParameterMutation.class.getName());
 
-	boolean removePathParameters;
-	boolean removeSecurityParameters;
-	
     public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
-        this(mutationProbability, randomGenerator,false,false);
-    }
-    
-    public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator, boolean removePathParameters) {
-		this(mutationProbability,randomGenerator,removePathParameters,false);
-    }
-    
-    public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator, boolean removePathParameters,boolean removeSecurityParameters) {
     	super(mutationProbability,randomGenerator);
-		this.removePathParameters=removePathParameters;
-		this.removeSecurityParameters=removeSecurityParameters;
 	}
 
 	@Override
     protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) {
         if (getRandomGenerator().nextDouble() <= mutationProbability) {
-            int maxTestCasesToMutate = (int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
+            int maxTestCasesToMutate = (int) Math.ceil(getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
             List<TestCase> testCases = new ArrayList<>(solution.getVariables());
             Collections.shuffle(testCases);
             TestCase testCase;
 
             for (int index=0; index < maxTestCasesToMutate; index++) {
                 testCase = testCases.get(index);
-                List<ParameterFeatures> presentParams = new ArrayList<>(getAllPresentParameters(testCase));
+                List<ParameterFeatures> presentParams = new ArrayList<>(getNonAuthParameters(getAllPresentParameters(testCase), testCase, solution));
                 Collections.shuffle(presentParams);
 
                 if (!presentParams.isEmpty()) {
@@ -73,10 +59,5 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
     private void doMutation(ParameterFeatures param, TestCase testCase) {
         testCase.removeParameter(param);
     }
-    
-    @Override
-    protected Collection<ParameterFeatures> getAllPresentParameters(TestCase testCase) {
-    	return getAllPresentParameters(testCase, removePathParameters,removeSecurityParameters);
-    }
-    
+
 }

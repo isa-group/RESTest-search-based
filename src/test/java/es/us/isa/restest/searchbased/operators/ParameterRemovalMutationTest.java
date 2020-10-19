@@ -37,7 +37,7 @@ public class ParameterRemovalMutationTest extends AbstractSearchBasedTest {
 			// Arrangement / Fixture		
 			RestfulAPITestSuiteSolution solution= problem.createSolution();		 
 		
-			RemoveParameterMutation operator=new  RemoveParameterMutation(1.0, JMetalRandom.getInstance().getRandomGenerator(),true);
+			RemoveParameterMutation operator=new  RemoveParameterMutation(1.0, JMetalRandom.getInstance().getRandomGenerator());
 		
 			// Act (SUT invocation)		
 			RestfulAPITestSuiteSolution result=operator.execute(solution.copy());

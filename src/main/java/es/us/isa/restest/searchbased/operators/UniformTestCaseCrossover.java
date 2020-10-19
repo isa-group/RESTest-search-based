@@ -45,7 +45,7 @@ public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 		offspring.add(offspring2);
 
 		if(crossoverRandomGenerator.getRandomValue() < probability) {
-			int maxTestCasesToMutate = (int) (crossoverRandomGenerator.getRandomValue() * maxMutationsRatio * Math.min(parent1.getNumberOfVariables(), parent2.getNumberOfVariables()));
+			int maxTestCasesToMutate = (int) Math.ceil(crossoverRandomGenerator.getRandomValue() * maxMutationsRatio * Math.min(parent1.getNumberOfVariables(), parent2.getNumberOfVariables()));
 
 			for (int index=0; index < maxTestCasesToMutate; index++) {
 				// 1. We choose randomly the cases for the parameter crossover:

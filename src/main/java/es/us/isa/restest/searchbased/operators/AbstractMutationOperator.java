@@ -10,6 +10,7 @@ import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.specification.ParameterFeatures;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.util.RESTestException;
+import org.javatuples.Pair;
 import org.uma.jmetal.operator.MutationOperator;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
@@ -17,6 +18,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -28,7 +30,6 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
     private PseudoRandomGenerator randomGenerator;
     protected boolean mutationApplied;
     protected double maxMutationsRatio; // Max percentage of elements to mutate in the test suite
-    public List<String> securityParamNames=Lists.newArrayList("Authorization","Application-Authorization","auth-token","access_token"); 
 
     public AbstractMutationOperator(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         this.mutationProbability = mutationProbability;
@@ -63,25 +64,21 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
     }
 
     protected Collection<ParameterFeatures> getAllPresentParameters(TestCase testCase) {
-    	return getAllPresentParameters(testCase, false,false);
+    	return getAllPresentParameters(testCase, false);
     }
     
-    protected Collection<ParameterFeatures> getAllPresentParameters(TestCase testCase,boolean includePathParameters, boolean includeSecurityParameters) {
+    protected Collection<ParameterFeatures> getAllPresentParameters(TestCase testCase,boolean includePathParameters) {
         Set<ParameterFeatures> parameters = new HashSet<>();
         if(includePathParameters) {
         	for (String pathParam : testCase.getPathParameters().keySet())
         		parameters.add(new ParameterFeatures(pathParam, "path", null));
         }
-        for (String queryParam : testCase.getQueryParameters().keySet()) {
-        	if(includeSecurityParameters || !isSecurityParameter(queryParam) )
-        		parameters.add(new ParameterFeatures(queryParam, "query", null));
-        }
+        for (String queryParam : testCase.getQueryParameters().keySet())
+            parameters.add(new ParameterFeatures(queryParam, "query", null));
         for (String headerParam : testCase.getHeaderParameters().keySet())
-        	if(includeSecurityParameters || !isSecurityParameter(headerParam) ) 
-        		parameters.add(new ParameterFeatures(headerParam, "header", null));
+            parameters.add(new ParameterFeatures(headerParam, "header", null));
         for (String formParam : testCase.getFormParameters().keySet())
-        	if(includeSecurityParameters || !isSecurityParameter(formParam) )
-        		parameters.add(new ParameterFeatures(formParam, "formData", null));
+            parameters.add(new ParameterFeatures(formParam, "formData", null));
         // TODO: Support body parameter mutation:
         /*if(testCase.getBodyParameter()!=null) {            
             parameterNames.add("body");
@@ -89,9 +86,13 @@ public abstract class AbstractMutationOperator implements MutationOperator<Restf
         return parameters;
     }
 
-    private boolean isSecurityParameter(String paramName) {
-		return securityParamNames.contains(paramName);
-	}
+    protected Collection<ParameterFeatures> getNonAuthParameters(Collection<ParameterFeatures> paramFeatures, TestCase testCase, RestfulAPITestSuiteSolution solution) {
+        // Discard auth params (workaround: those that don't have associated test data generators)
+        return paramFeatures.stream()
+                .filter(param -> solution.getProblem().getTestCaseGenerators().get(testCase.getOperationId())
+                        .getGenerators().containsKey(Pair.with(param.getName(), param.getIn())))
+                .collect(Collectors.toList());
+    }
 
 	protected abstract void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) throws RESTestException;
 }

@@ -40,14 +40,14 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
     @Override
     protected void doMutation(double probability, RestfulAPITestSuiteSolution solution) {
         if (getRandomGenerator().nextDouble() <= probability) {
-            int maxTestCasesToMutate = (int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
+            int maxTestCasesToMutate = (int) Math.ceil(getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
             List<TestCase> testCases = new ArrayList<>(solution.getVariables());
             Collections.shuffle(testCases);
             TestCase testCase;
 
             for (int index=0; index < maxTestCasesToMutate; index++) {
                 testCase = testCases.get(index);
-                List<ParameterFeatures> presentParams = new ArrayList<>(getAllPresentParameters(testCase));
+                List<ParameterFeatures> presentParams = new ArrayList<>(getNonAuthParameters(getAllPresentParameters(testCase, true), testCase, solution));
                 Collections.shuffle(presentParams);
 
                 if (!presentParams.isEmpty()) {
