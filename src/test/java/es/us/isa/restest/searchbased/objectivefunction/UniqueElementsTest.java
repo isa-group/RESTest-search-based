@@ -25,7 +25,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
         for (TestCase tc: solution.getVariables()) {
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false, "5XX status code"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
@@ -44,11 +44,11 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
         problem.getConfig().getTestConfiguration().getOperations().forEach(op -> {
             String testId = IDGenerator.generateId();
             solution.addVariable(new TestCase(testId, false, op.getOperationId(), op.getTestPath(), PathItem.HttpMethod.GET));
-            solution.setTestResult(testId, new TestResult(testId, "500", "Same body", "application/json", false));
+            solution.setTestResult(testId, new TestResult(testId, "500", "Same body", "application/json", false, "whatever"));
 
             testId = IDGenerator.generateId();
             solution.addVariable(new TestCase(testId, false, op.getOperationId(), op.getTestPath(), PathItem.HttpMethod.GET));
-            solution.setTestResult(testId, new TestResult(testId, "400", "Same body", "application/json", false));
+            solution.setTestResult(testId, new TestResult(testId, "400", "Same body", "application/json", false, "whatever"));
         });
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
@@ -64,7 +64,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
         for (TestCase tc: solution.getVariables()) {
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", tc.getId(), "application/json", false));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", tc.getId(), "application/json", false, "whatever"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
@@ -80,7 +80,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
         for (TestCase tc: solution.getVariables()) {
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body", "application/json", false, "whatever"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, JACCARD, 0.9, false);
@@ -97,7 +97,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
         for (int i=0; i<solution.getVariables().size(); i++) {
             TestCase tc = solution.getVariable(i);
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body Same body Same body Same body Same body Same body "+tc.getId().charAt(tc.getId().length()-i-1), "application/json", false));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", "Same body Same body Same body Same body Same body Same body "+tc.getId().charAt(tc.getId().length()-i-1), "application/json", false, "whatever"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, LEVENSHTEIN, 0.9, false);
@@ -115,7 +115,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
         String[] bodies = {"abcdef", "ghijkl", "mnopqr", "stuvwx"};
         for (int i=0; i<solution.getVariables().size(); i++) {
             TestCase tc = solution.getVariable(i);
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", bodies[i], "application/json", false));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "500", bodies[i], "application/json", false, "whatever"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, JARO_WINKLER, 0.1, false);
@@ -129,7 +129,7 @@ public class UniqueElementsTest extends AbstractSearchBasedTest {
 
         RestfulAPITestSuiteSolution solution = new RestfulAPITestSuiteSolution(problem);
         for (TestCase tc: solution.getVariables()) {
-            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "200", "Same body", "application/json", true));
+            solution.setTestResult(tc.getId(), new TestResult(tc.getId(), "200", "Same body", "application/json", true, "whatever"));
         }
 
         UniqueElements objFunc = new UniqueElements(Element.FAILURE, false);
