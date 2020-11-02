@@ -137,6 +137,10 @@ public class MultipleExperiments {
     private static final Logger logger = LogManager.getLogger(MultipleExperiments.class.getName());
 
     public static void main(String[] args) {
+        // Create CSV file with stats of all experiments
+        String reportPath = "target/test-data/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10) + ".csv";
+        CSVManager.createCSVwithHeader(reportPath, ExperimentReport.getCsvHeader());
+
         for (int i : minTestSuiteSizeArray) {
             minTestSuiteSize = i;
             for (int j : maxTestSuiteSizeArray) {
@@ -198,7 +202,7 @@ public class MultipleExperiments {
                                                 Timer.stopCounting(ALL);
                                                 generateTimeReport();
                                                 logger.info("Results saved to folder {}", experimentName);
-                                                experimentReports.add(getExperimentReport(generator, statsReportManager));
+                                                CSVManager.writeCSVRow(reportPath, getExperimentReport(generator, statsReportManager).getCsvRow());
                                             } catch (IOException ex) {
                                                 logger.error(ex);
                                             }
@@ -214,16 +218,7 @@ public class MultipleExperiments {
         }
 
         logger.info("A total of {} experiment folders have been generated:\n{}", experimentNames.size(), String.join("\n", experimentNames));
-
-        String reportPath = "target/test-data/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10) + ".csv";
-        exportExperimentReports(reportPath);
-
-        logger.info("Generated experiment report in the following path: {}", reportPath);
-    }
-
-    private static void exportExperimentReports(String path) {
-        CSVManager.createCSVwithHeader(path, ExperimentReport.getCsvHeader());
-        experimentReports.forEach(e -> CSVManager.writeCSVRow(path, e.getCsvRow()));
+        logger.info("The multi-experiment report is available in the following path: {}", reportPath);
     }
 
     private static ExperimentReport getExperimentReport(SearchBasedTestSuiteGenerator generator, StatsReportManager statsReportManager) throws IOException {
