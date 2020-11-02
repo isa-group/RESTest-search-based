@@ -10,7 +10,7 @@ public class ExperimentReport {
     private int maxTestSuiteSize;
     private int populationSize;
     private double[] mutationProbabilities;
-    private double[] crossoverProbabilities;
+    private double crossoverProbability;
     private String[] objectiveFunctions;
     private String terminationCriterion;
 
@@ -58,8 +58,8 @@ public class ExperimentReport {
         return this;
     }
 
-    public ExperimentReport withCrossoverProbabilities(double[] crossoverProbabilities) {
-        this.crossoverProbabilities = crossoverProbabilities;
+    public ExperimentReport withCrossoverProbabilities(double crossoverProbability) {
+        this.crossoverProbability = crossoverProbability;
         return this;
     }
 
@@ -193,12 +193,12 @@ public class ExperimentReport {
         this.mutationProbabilities = mutationProbabilities;
     }
 
-    public double[] getCrossoverProbabilities() {
-        return crossoverProbabilities;
+    public double getCrossoverProbability() {
+        return crossoverProbability;
     }
 
-    public void setCrossoverProbabilities(double[] crossoverProbabilities) {
-        this.crossoverProbabilities = crossoverProbabilities;
+    public void setCrossoverProbability(double crossoverProbability) {
+        this.crossoverProbability = crossoverProbability;
     }
 
     public String[] getObjectiveFunctions() {
@@ -355,7 +355,7 @@ public class ExperimentReport {
                 + "," + maxTestSuiteSize
                 + "," + populationSize
                 + "," + Arrays.toString(mutationProbabilities).replace(',', ';')
-                + "," + Arrays.toString(crossoverProbabilities).replace(',', ';')
+                + "," + crossoverProbability
                 + "," + Arrays.toString(objectiveFunctions).replace(',', ';')
                 + "," + terminationCriterion
                 + "," + time

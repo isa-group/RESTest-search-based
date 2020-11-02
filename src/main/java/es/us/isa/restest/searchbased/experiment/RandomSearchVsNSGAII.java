@@ -42,10 +42,7 @@ public class RandomSearchVsNSGAII {
 			0.1, // RemoveParameterMutation
 			0.1  // RandomParameterValueMutation
 	};
-	private double[] crossoverProbabilities = {
-			0.1, // UniformTestCaseCrossover
-			0.1  // SinglePointTestSuiteCrossover
-	};
+	private double crossoverProbability = 0.1; // SinglePointTestSuiteCrossover
 	
     
     List<RestfulAPITestSuiteGenerationProblem> problems = null;
@@ -65,7 +62,7 @@ public class RandomSearchVsNSGAII {
 		for(int runId=0;runId<independentRuns;runId++) {
 			for(RestfulAPITestSuiteGenerationProblem problem:problems) {
 				ep=new ExperimentProblem<>(problem);
-				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, mutationProbabilities, crossoverProbabilities, maxEvaluations, problem.clone());
+				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, mutationProbabilities, crossoverProbability, maxEvaluations, problem.clone());
 				randomSearch=new RandomSearch(problem.clone(),new MaxEvaluations(maxEvaluations));
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(NSGAII, "NSGAII", ep,runId ));			
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(randomSearch,"RandomSearch",ep,runId));			

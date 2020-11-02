@@ -63,23 +63,23 @@ public class SearchBasedTestSuiteGenerator {
 
     private RestfulAPITestSuiteSolution bestSolution;
     
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions, String targetPath, long seed, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities,TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(spec, configFilePath, experimentName, objectiveFunctions,targetPath, seed,null,populationSize, mutationProbabilities, crossoverProbabilities,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions, String targetPath, long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability,TerminationCriterion tc, SearchBasedRunner runner) {
+    	this(spec, configFilePath, experimentName, objectiveFunctions,targetPath, seed,null,populationSize, mutationProbabilities, crossoverProbability,tc, runner);
     }
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer fixedTestSuiteSize, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities,TerminationCriterion tc, SearchBasedRunner runner) {
-        this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,fixedTestSuiteSize),populationSize, mutationProbabilities, crossoverProbabilities,tc, runner);
-    }
-    
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer minTestSuiteSize,Integer maxTestSuiteSize, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,minTestSuiteSize,maxTestSuiteSize),populationSize, mutationProbabilities, crossoverProbabilities,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer fixedTestSuiteSize, int populationSize, double[] mutationProbabilities, double crossoverProbability,TerminationCriterion tc, SearchBasedRunner runner) {
+        this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,fixedTestSuiteSize),populationSize, mutationProbabilities, crossoverProbability,tc, runner);
     }
     
-    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, RestfulAPITestSuiteGenerationProblem problem, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,Lists.newArrayList(problem),populationSize, mutationProbabilities, crossoverProbabilities,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer minTestSuiteSize,Integer maxTestSuiteSize, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner) {
+    	this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,minTestSuiteSize,maxTestSuiteSize),populationSize, mutationProbabilities, crossoverProbability,tc, runner);
     }
     
-    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,myproblems,configureDefaultAlgorithms(seed,populationSize, mutationProbabilities, crossoverProbabilities,myproblems,tc), runner);
+    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, RestfulAPITestSuiteGenerationProblem problem, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner) {
+    	this(experimentName,targetPath,seed,Lists.newArrayList(problem),populationSize, mutationProbabilities, crossoverProbability,tc, runner);
+    }
+    
+    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner) {
+    	this(experimentName,targetPath,seed,myproblems,configureDefaultAlgorithms(seed,populationSize, mutationProbabilities, crossoverProbability,myproblems,tc), runner);
         this.tc=tc;
     	setPopulationSize(populationSize);
     }
@@ -109,13 +109,13 @@ public class SearchBasedTestSuiteGenerator {
     }
 
     
-    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, int maxEvaluations, RestfulAPITestSuiteGenerationProblem problem){
-    	Algorithm<List<RestfulAPITestSuiteSolution>> result=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbabilities, problem,new MaxEvaluations(maxEvaluations));
+    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, int maxEvaluations, RestfulAPITestSuiteGenerationProblem problem){
+    	Algorithm<List<RestfulAPITestSuiteSolution>> result=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbability, problem,new MaxEvaluations(maxEvaluations));
     	return result;
     }
     
     
-    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, RestfulAPITestSuiteGenerationProblem problem,TerminationCriterion tc){
+    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, RestfulAPITestSuiteGenerationProblem problem,TerminationCriterion tc){
     	MersenneTwisterGenerator generator=new MersenneTwisterGenerator(seed);
     	Algorithm<List<RestfulAPITestSuiteSolution>> result=null;
     	AllMutationOperators mutation=new AllMutationOperators(Lists.newArrayList(
@@ -126,10 +126,7 @@ public class SearchBasedTestSuiteGenerator {
         		new RemoveParameterMutation(mutationProbabilities[4],generator),
         		new RandomParameterValueMutation(mutationProbabilities[5],generator)
         ));
-    	AllCrossoverOperators crossover=new AllCrossoverOperators(Lists.newArrayList(
-    	        new UniformTestCaseCrossover(crossoverProbabilities[0]),
-                new SinglePointTestSuiteCrossover(crossoverProbabilities[1])
-        ));
+        SinglePointTestSuiteCrossover crossover=new SinglePointTestSuiteCrossover(crossoverProbability);
     	
     	 SelectionOperator<List<RestfulAPITestSuiteSolution>, RestfulAPITestSuiteSolution> selectionOperator= 
     			 new BinaryTournamentSelection<RestfulAPITestSuiteSolution>(new RankingAndCrowdingDistanceComparator<RestfulAPITestSuiteSolution>()) ;;
@@ -144,14 +141,14 @@ public class SearchBasedTestSuiteGenerator {
     	return result;
     }
     
-    private static List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> configureDefaultAlgorithms(long seed, int populationSize, double[] mutationProbabilities, double[] crossoverProbabilities, List<RestfulAPITestSuiteGenerationProblem> myproblems,TerminationCriterion tc) {
+    private static List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> configureDefaultAlgorithms(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, List<RestfulAPITestSuiteGenerationProblem> myproblems,TerminationCriterion tc) {
     	List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> result = new ArrayList<>();
         Algorithm<List<RestfulAPITestSuiteSolution>> algorithm = null; 
         
         ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>> expAlg=null;
         int runId=0;
         for (RestfulAPITestSuiteGenerationProblem problem : myproblems) {            
-        	algorithm=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbabilities, problem,tc);
+        	algorithm=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbability, problem,tc);
             expAlg=new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(algorithm, new ExperimentProblem<>(problem), runId);           
             result.add(expAlg);
             runId++;

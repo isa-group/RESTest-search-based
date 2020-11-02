@@ -44,10 +44,7 @@ public class RandomSearchExperiment {
 				0.1, // RemoveParameterMutation
 				0.1  // RandomParameterValueMutation
 		};
-		double[] crossoverProbabilities = {
-				0.1, // UniformTestCaseCrossover
-				0.1  // SinglePointTestSuiteCrossover
-		};
+		double crossoverProbability = 0.1; // SinglePointTestSuiteCrossover
 	    List<RestfulAPITestingObjectiveFunction> objectiveFunctions= Arrays.asList(
 				new InputCoverage(),
 	    		new SuiteSize()
@@ -63,7 +60,7 @@ public class RandomSearchExperiment {
                 maxTestSuiteSize,                
                 populationSize,
 				mutationProbabilities,
-				crossoverProbabilities,
+				crossoverProbability,
                 new MaxEvaluations(maxEvaluations),
 				null);
 	    List<RestfulAPITestSuiteGenerationProblem> problems = Arrays.asList();

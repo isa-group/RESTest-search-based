@@ -61,10 +61,7 @@ public class Main {
             0.05, // RemoveParameterMutation
             0.05  // RandomParameterValueMutation
     };
-    private static double[] crossoverProbabilities = {
-            0.05, // UniformTestCaseCrossover
-            0.8  // SinglePointTestSuiteCrossover
-    };
+    private static double crossoverProbability = 0.8; // SinglePointTestSuiteCrossover
     // Objective functions: ORDER IS IMPORTANT!!! First one will be used to determine the "best" test suite
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Lists.newArrayList(
             new BalanceOfValidTestsRatio(0.7),
@@ -116,7 +113,7 @@ public class Main {
                 maxTestSuiteSize,
                 populationSize,
                 mutationProbabilities,
-                crossoverProbabilities,
+                crossoverProbability,
                 terminationCriterion,
                 runner
         );
@@ -142,7 +139,7 @@ public class Main {
                 "maxEvaluations: " + maxEvaluations + "\n" +
                 "maxExecutedRequests: " + maxExecutedRequests + "\n" +
                 "mutationProbabilities: " + Arrays.toString(mutationProbabilities) + "\n" +
-                "crossoverProbabilities: " + Arrays.toString(crossoverProbabilities) + "\n" +
+                "crossoverProbabilities: " + crossoverProbability + "\n" +
                 "objectiveFunctions: \n";
 
         for (RestfulAPITestingObjectiveFunction objFunc: objectiveFunctions)

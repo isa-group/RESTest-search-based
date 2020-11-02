@@ -71,14 +71,8 @@ public class MultipleExperiments {
             {0.05, 0.05, 0.05, 0.05, 0.05, 0.05},
             {0.1, 0.1, 0.1, 0.1, 0.1, 0.1}
     };
-    private static double[][] crossoverProbabilitiesArray = {
-            {
-                    0.01, // UniformTestCaseCrossover
-                    0.5  // SinglePointTestSuiteCrossover
-            },
-            {0.05, 0.75},
-            {0.1, 0.9}
-    };
+    private static double[] crossoverProbabilityArray = {0.5, 0.75, 0.9}; // SinglePointTestSuiteCrossover
+
     // Objective functions: ORDER IS IMPORTANT!!! First one will be used to determine the "best" test suite
     private static List<List<RestfulAPITestingObjectiveFunction>> objectiveFunctionsArray = Lists.newArrayList(
             Lists.newArrayList(new Coverage()),
@@ -124,7 +118,7 @@ public class MultipleExperiments {
 //    private static int maxEvaluations;
 //    private static int maxExecutedRequests;
     private static double[] mutationProbabilities;
-    private static double[] crossoverProbabilities;
+    private static double crossoverProbability;
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
     private static TerminationCriterion terminationCriterion;
 
@@ -150,8 +144,8 @@ public class MultipleExperiments {
                         populationSize = k;
                         for (double[] l : mutationProbabilitiesArray) {
                             mutationProbabilities = l;
-                            for (double[] m : crossoverProbabilitiesArray) {
-                                crossoverProbabilities = m;
+                            for (double m : crossoverProbabilityArray) {
+                                crossoverProbability = m;
                                 for (List<RestfulAPITestingObjectiveFunction> n : objectiveFunctionsArray) {
                                     objectiveFunctions = n;
                                     for (TerminationCriterion o : terminationCriterionArray) {
@@ -192,7 +186,7 @@ public class MultipleExperiments {
                                                     maxTestSuiteSize,
                                                     populationSize,
                                                     mutationProbabilities,
-                                                    crossoverProbabilities,
+                                                    crossoverProbability,
                                                     terminationCriterion,
                                                     runner
                                             );
@@ -229,7 +223,7 @@ public class MultipleExperiments {
                 .withMaxTestSuiteSize(maxTestSuiteSize)
                 .withPopulationSize(populationSize)
                 .withMutationProbabilities(mutationProbabilities)
-                .withCrossoverProbabilities(crossoverProbabilities)
+                .withCrossoverProbabilities(crossoverProbability)
                 .withObjectiveFunctions(objectiveFunctions.stream().map(of -> of.toString()).toArray(String[]::new))
                 .withTerminationCriterion(terminationCriterion.toString())
                 .withTime(Timer.getCounters().get(ALL.getName()).get(0))
