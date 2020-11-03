@@ -30,6 +30,8 @@ public class Coverage extends RestfulAPITestingObjectiveFunction{
         coverageMeter.setTestResults(solution.getTestResults());
         double coveredElements=(double)coverageMeter.getCoveredTotalElements();
         double totalElements=(double)coverageMeter.getAllTotalElements();
+
+        saveFitnessValue(coveredElements/totalElements);
         logEvaluation(coveredElements/totalElements);
         return coveredElements/totalElements;
     }

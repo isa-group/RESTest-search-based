@@ -62,7 +62,8 @@ public class RandomSearchExperiment {
 				mutationProbabilities,
 				crossoverProbability,
                 new MaxEvaluations(maxEvaluations),
-				null);
+				null,
+                null);
 	    List<RestfulAPITestSuiteGenerationProblem> problems = Arrays.asList();
 	    List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms = null;
 	    Algorithm<List<RestfulAPITestSuiteSolution>> randomSearch=new RandomSearch(generator.getProblems().get(0).getProblem(),maxEvaluations);

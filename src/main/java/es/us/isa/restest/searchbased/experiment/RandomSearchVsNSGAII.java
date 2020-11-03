@@ -80,7 +80,7 @@ public class RandomSearchVsNSGAII {
     public void run()
     {
     	String experimentName="RandomSearchVsNSGAII";
-    	SearchBasedTestSuiteGenerator generator=new SearchBasedTestSuiteGenerator(experimentName, targetDir, seed, problems,algorithms, null);
+    	SearchBasedTestSuiteGenerator generator=new SearchBasedTestSuiteGenerator(experimentName, targetDir, seed, problems,algorithms, null, null);
     	try {
 			generator.runExperiment(independentRuns,8);
 		} catch (IOException e) {			

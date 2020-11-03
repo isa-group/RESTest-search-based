@@ -68,6 +68,7 @@ public class UniqueElements extends RestfulAPITestingObjectiveFunction {
         if (normalize)
             numOfElements /= solution.getNumberOfVariables();
 
+        saveFitnessValue(numOfElements);
         logEvaluation(numOfElements);
         return numOfElements;
     }

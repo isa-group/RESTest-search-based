@@ -19,7 +19,7 @@ import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutedRequests;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutionTime;
-import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
+import es.us.isa.restest.searchbased.terminationcriteria.AbstractTerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
@@ -93,7 +93,7 @@ public class MultipleExperiments {
             )
     );
     // Termination criterion
-    private static TerminationCriterion[] terminationCriterionArray = {
+    private static AbstractTerminationCriterion[] terminationCriterionArray = {
             new MaxEvaluations(1000),
             new MaxEvaluations(5000),
             new MaxEvaluations(10000),
@@ -107,9 +107,9 @@ public class MultipleExperiments {
 
     // API parameters
     private static OpenAPISpecification spec;
-    private static String OAISpecPath = "src/test/resources/Yelp/swagger.yaml"; // Path to OAS specification file
-    private static String confPath = "src/test/resources/Yelp/testConf.yaml"; // Path to test configuration file
-    private static String experimentBaseName = "yelp_prelim" + "_";
+    private static String OAISpecPath = "src/test/resources/Bikewise/swagger.json"; // Path to OAS specification file
+    private static String confPath = "src/test/resources/Bikewise/fullConf.yaml"; // Path to test configuration file
+    private static String experimentBaseName = "bikewise" + "_";
     private static List<String> experimentNames = new ArrayList<>();
 
     private static int minTestSuiteSize;
@@ -120,7 +120,7 @@ public class MultipleExperiments {
     private static double[] mutationProbabilities;
     private static double crossoverProbability;
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
-    private static TerminationCriterion terminationCriterion;
+    private static AbstractTerminationCriterion terminationCriterion;
 
     private static String experimentName;
     private static String targetDir; // Directory where tests will be generated.
@@ -132,8 +132,13 @@ public class MultipleExperiments {
 
     public static void main(String[] args) {
         // Create CSV file with stats of all experiments
-        String reportPath = "target/test-data/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10) + ".csv";
-        CSVManager.createCSVwithHeader(reportPath, ExperimentReport.getCsvHeader());
+        String reportPath = readProperty("search.stats.dir")
+                + "/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10)
+                + "_" + readProperty("search.stats.general.file");
+        createDir(readProperty("search.stats.dir"));
+//        String objFuncPath = searchStatsDirectory + "/" + readProperty("search.stats.objfunc.file");
+        CSVManager.createCSVwithHeader(reportPath, ExperimentReport.getGeneralStatsCsvHeader());
+//        CSVManager.createCSVwithHeader(objFuncPath, ExperimentReport.getObjFuncStatsCsvHeader());
 
         for (int i : minTestSuiteSizeArray) {
             minTestSuiteSize = i;
@@ -148,7 +153,7 @@ public class MultipleExperiments {
                                 crossoverProbability = m;
                                 for (List<RestfulAPITestingObjectiveFunction> n : objectiveFunctionsArray) {
                                     objectiveFunctions = n;
-                                    for (TerminationCriterion o : terminationCriterionArray) {
+                                    for (AbstractTerminationCriterion o : terminationCriterionArray) {
                                         terminationCriterion = o;
                                         if (!(terminationCriterion instanceof MaxExecutedRequests &&
                                                 objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
@@ -159,6 +164,16 @@ public class MultipleExperiments {
                                             targetDir = "src/generation/java/" + experimentName; // Directory where tests will be generated.
                                             packageName = experimentName;							// Package name
                                             testClassName = experimentName.substring(0,1).toUpperCase() + experimentName.substring(1); // Name of the class where tests will be written.
+
+                                            // Create experiment report and set it up
+                                            ExperimentReport experimentReport = new ExperimentReport(experimentName);
+                                            experimentReport.setStoppingCriterion(terminationCriterion.toString());
+                                            experimentReport.setCurrentStoppingCriterionState(0d);
+                                            experimentReport.setStoppingCriterionMax(terminationCriterion.getStoppingCriterionMax());
+                                            experimentReport.setCurrentSolutionIndex(0);
+                                            objectiveFunctions.forEach(objFunc -> objFunc.setExperimentReport(experimentReport));
+                                            terminationCriterion.setExperimentReport(experimentReport);
+                                            terminationCriterion.reset();
 
                                             seed = RandomUtils.nextLong();
 
@@ -188,7 +203,8 @@ public class MultipleExperiments {
                                                     mutationProbabilities,
                                                     crossoverProbability,
                                                     terminationCriterion,
-                                                    runner
+                                                    runner,
+                                                    experimentReport
                                             );
 
                                             try {
@@ -196,7 +212,17 @@ public class MultipleExperiments {
                                                 Timer.stopCounting(ALL);
                                                 generateTimeReport();
                                                 logger.info("Results saved to folder {}", experimentName);
-                                                CSVManager.writeCSVRow(reportPath, getExperimentReport(generator, statsReportManager).getCsvRow());
+
+                                                // Update file containing stats from all experiments
+                                                updateExperimentReport(experimentReport, generator, statsReportManager);
+                                                CSVManager.writeCSVRow(reportPath, experimentReport.getGeneralStatsCsvRow());
+
+                                                // Create file containing objFunc stats from this specific experiment
+                                                String objFuncDir = readProperty("search.stats.dir") + "/" + experimentName;
+                                                createDir(objFuncDir);
+                                                String objFuncPath = objFuncDir + "/" + readProperty("search.stats.objfunc.file");
+                                                CSVManager.createCSVwithHeader(objFuncPath, ExperimentReport.getObjFuncStatsCsvHeader());
+                                                CSVManager.writeCSVRow(objFuncPath, experimentReport.getObjFuncStatsCsvRows());
                                             } catch (IOException ex) {
                                                 logger.error(ex);
                                             }
@@ -212,13 +238,13 @@ public class MultipleExperiments {
         }
 
         logger.info("A total of {} experiment folders have been generated:\n{}", experimentNames.size(), String.join("\n", experimentNames));
-        logger.info("The multi-experiment report is available in the following path: {}", reportPath);
+        logger.info("The multi-experiment report is available at the following path: {}", reportPath);
     }
 
-    private static ExperimentReport getExperimentReport(SearchBasedTestSuiteGenerator generator, StatsReportManager statsReportManager) throws IOException {
+    private static void updateExperimentReport(ExperimentReport experimentReport, SearchBasedTestSuiteGenerator generator, StatsReportManager statsReportManager) throws IOException {
         List<TestResult> testResults = TestManager.getTestResults(statsReportManager.getTestDataDir() + "/test-results.csv");
 
-        return new ExperimentReport(experimentName)
+        experimentReport
                 .withMinTestSuiteSize(minTestSuiteSize)
                 .withMaxTestSuiteSize(maxTestSuiteSize)
                 .withPopulationSize(populationSize)

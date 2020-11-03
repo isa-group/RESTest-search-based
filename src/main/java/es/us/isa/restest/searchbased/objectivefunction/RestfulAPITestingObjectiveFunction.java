@@ -6,8 +6,11 @@
 package es.us.isa.restest.searchbased.objectivefunction;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
+import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import static es.us.isa.restest.util.PropertyManager.readProperty;
 
 /**
  *
@@ -19,6 +22,8 @@ public abstract class RestfulAPITestingObjectiveFunction {
     ObjectiveFunctionType type;
     boolean requiresTestExecution;
     boolean requiresTestOracles;
+
+    private ExperimentReport experimentReport;
     
     public RestfulAPITestingObjectiveFunction(ObjectiveFunctionType type) {
     	this(type,true,true);
@@ -60,6 +65,17 @@ public abstract class RestfulAPITestingObjectiveFunction {
 	}
 
 	public void logEvaluation(double value) {
-        logger.info("Evaluating fitness function: " + value);
+        logger.info("Evaluating fitness function: {}", value);
     }
+
+    public void setExperimentReport(ExperimentReport experimentReport) {
+        this.experimentReport = experimentReport;
+    }
+
+    public void saveFitnessValue(double value) {
+        if (Boolean.parseBoolean(readProperty("search.stats.enabled")) && experimentReport != null) {
+            experimentReport.addFitnessValue(this.toString(), value);
+        }
+    }
+
 }

@@ -28,6 +28,7 @@ public class InputCoverage extends RestfulAPITestingObjectiveFunction{
         //coverageMeter.setTestResults(solution.getTestResults());
         double coveredInputElements=(double)coverageMeter.getCoveredInputElements();
         double totalInputElements=(double)coverageMeter.getAllInputElements();
+        saveFitnessValue(coveredInputElements/totalInputElements);
         logEvaluation(coveredInputElements/totalInputElements);
         return coveredInputElements/totalInputElements;
     }

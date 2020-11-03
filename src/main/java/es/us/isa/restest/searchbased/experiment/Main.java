@@ -115,7 +115,8 @@ public class Main {
                 mutationProbabilities,
                 crossoverProbability,
                 terminationCriterion,
-                runner
+                runner,
+                null
         );
 
         try {

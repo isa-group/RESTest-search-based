@@ -8,6 +8,7 @@ import es.us.isa.restest.configuration.pojos.TestConfigurationObject;
 import es.us.isa.restest.generators.ConstraintBasedTestCaseGenerator;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction.ObjectiveFunctionType;
+import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
@@ -24,9 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static es.us.isa.restest.util.PropertyManager.readProperty;
+
 public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem<RestfulAPITestSuiteSolution> {
 
     private static final Logger logger = LogManager.getLogger(RestfulAPITestSuiteGenerationProblem.class.getName());
+
+    private ExperimentReport experimentReport;
 
 	// TestSuiteSizeParameters :
 	// We support 3 suite size configuration mechanisms:
@@ -135,6 +140,7 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
             				-objFunc.evaluate(s)); 	// Otherwise change sign
             i++;
         }
+        updateReportIndexes();
     }
 
     @Override
@@ -242,7 +248,14 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
 	public long getTestCasesExecuted() {
 		return testCasesExecuted;		
 	}
-	
-	
-    
+
+    public void setExperimentReport(ExperimentReport experimentReport) {
+        this.experimentReport = experimentReport;
+    }
+
+    public void updateReportIndexes() {
+        if (Boolean.parseBoolean(readProperty("search.stats.enabled")) && experimentReport != null) {
+            experimentReport.incrementCurrentSolutionIndex();
+        }
+    }
 }

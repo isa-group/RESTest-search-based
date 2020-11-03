@@ -87,6 +87,7 @@ public class Diversity extends RestfulAPITestingObjectiveFunction {
         if (normalize)
             globalDiversity /= ((double) (solution.getNumberOfVariables() * (solution.getNumberOfVariables() - 1)) / 2);
 
+        saveFitnessValue(globalDiversity);
         logEvaluation(globalDiversity);
         return globalDiversity;
     }

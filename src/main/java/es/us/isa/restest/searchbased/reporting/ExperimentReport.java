@@ -1,9 +1,22 @@
 package es.us.isa.restest.searchbased.reporting;
 
+import org.javatuples.Septet;
+
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ExperimentReport {
     private String id;
+
+    // Helper variables (not exported):
+    private int currentIteration;
+    private String stoppingCriterion;
+    private Double currentStoppingCriterionState;
+    private Double stoppingCriterionMax;
+    private int currentSolutionIndex;
 
     // Experiment configuration:
     private int minTestSuiteSize;
@@ -17,6 +30,9 @@ public class ExperimentReport {
     // Regarding the whole execution:
     private long time;
     private long executedRequests;
+    // Fitness values:
+    // iteration, stoppingCriterion, stoppingCriterionState, stoppingCriterionMax, solutionIndex, objectiveFunction, value
+    private List<Septet<Integer, String, Double, Double, Integer, String, Double>> fitnessValues;
 
     // Regarding the final test suite generated:
     private double apiCoverage;
@@ -34,8 +50,54 @@ public class ExperimentReport {
     private int failedTestResultsSwagger;
     private int differentFailures; // Based on response body
 
+    // *** Helper methods to save fitness values ***
+
+    public void setCurrentIteration(int currentIteration) {
+        this.currentIteration = currentIteration;
+    }
+
+    public void incrementCurrentIteration() {
+        this.currentIteration++;
+    }
+
+    public void setStoppingCriterion(String stoppingCriterion) {
+        this.stoppingCriterion = stoppingCriterion;
+    }
+
+    public void setCurrentStoppingCriterionState(Double currentStoppingCriterionState) {
+        this.currentStoppingCriterionState = currentStoppingCriterionState;
+    }
+
+    public void setStoppingCriterionMax(Double stoppingCriterionMax) {
+        this.stoppingCriterionMax = stoppingCriterionMax;
+    }
+
+    public void setCurrentSolutionIndex(int currentSolutionIndex) {
+        this.currentSolutionIndex = currentSolutionIndex;
+    }
+
+    public void incrementCurrentSolutionIndex() {
+        this.currentSolutionIndex++;
+    }
+
+    public void addFitnessValue(String objectiveFunction, double value) {
+        fitnessValues.add(Septet.with(
+                currentIteration,
+                stoppingCriterion,
+                currentStoppingCriterionState,
+                stoppingCriterionMax,
+                currentSolutionIndex,
+                objectiveFunction,
+                value
+        ));
+    }
+
+    // *********************************************
+
     public ExperimentReport(String id) {
         this.id = id;
+        this.currentIteration = 1;
+        this.fitnessValues = new ArrayList<>();
     }
 
     public ExperimentReport withMinTestSuiteSize(int minTestSuiteSize) {
@@ -345,11 +407,15 @@ public class ExperimentReport {
         this.differentFailures = differentFailures;
     }
 
-    public static String getCsvHeader() {
+    public static String getGeneralStatsCsvHeader() {
         return "id,minTestSuiteSize,maxTestSuiteSize,populationSize,mutationProbabilities,crossoverProbabilities,objectiveFunctions,terminationCriterion,time,executedRequests,apiCoverage,testSuiteSize,nominalTestCases,faultyTestCases,faultyTestCasesDueToParameters,faultyTestCasesDueToDependencies,successfulTestResults,failedTestResults,failedTestResults5XX,failedTestResultsNominal4XX,failedTestResultsFaultyParameters2XX,failedTestResultsFaultyDependencies2XX,failedTestResultsSwagger,differentFailures";
     }
 
-    public String getCsvRow() {
+    public static String getObjFuncStatsCsvHeader() {
+        return "iteration,stoppingCriterion,stoppingCriterionState,stoppingCriterionMax,solutionIndex,objectiveFunction,value";
+    }
+
+    public String getGeneralStatsCsvRow() {
         return id
                 + "," + minTestSuiteSize
                 + "," + maxTestSuiteSize
@@ -374,5 +440,11 @@ public class ExperimentReport {
                 + "," + failedTestResultsFaultyDependencies2XX
                 + "," + failedTestResultsSwagger
                 + "," + differentFailures;
+    }
+
+    public String getObjFuncStatsCsvRows() {
+        return fitnessValues.stream().map(fitnessValueField ->
+                fitnessValueField.toList().stream().map(e -> e.toString().replace(',', ';')).collect(Collectors.joining(","))
+        ).collect(Collectors.joining("\n"));
     }
 }

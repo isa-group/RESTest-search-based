@@ -32,6 +32,7 @@ public class BalanceOfValidTestsRatio extends RestfulAPITestingObjectiveFunction
         double validTestCases = solution.getVariables().stream().filter(tc -> !tc.getFaulty()).count();
 
         double ratio = Math.abs(targetRatio - (validTestCases/solution.getNumberOfVariables()));
+		saveFitnessValue(ratio);
         logEvaluation(ratio);
         return ratio;
     }
