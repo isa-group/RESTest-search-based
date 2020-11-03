@@ -34,13 +34,10 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
 	@Override
     protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) {
         if (getRandomGenerator().nextDouble() <= mutationProbability) {
-            int maxTestCasesToMutate = (int) Math.ceil(getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
             List<TestCase> testCases = new ArrayList<>(solution.getVariables());
             Collections.shuffle(testCases);
-            TestCase testCase;
 
-            for (int index=0; index < maxTestCasesToMutate; index++) {
-                testCase = testCases.get(index);
+            for (TestCase testCase : testCases) {
                 List<ParameterFeatures> presentParams = new ArrayList<>(getNonAuthParameters(getAllPresentParameters(testCase), testCase, solution));
                 Collections.shuffle(presentParams);
 
@@ -51,6 +48,7 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
                     logger.info("Mutation probability fulfilled! Parameter removed from test case.");
                     updateTestCaseFaultyReason(solution, testCase);
                     resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                    break;
                 }
             }
         }

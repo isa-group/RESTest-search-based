@@ -7,6 +7,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
+import java.util.List;
+
 public class ReplaceTestCaseMutation extends AbstractMutationOperator {
 
 	private static final Logger logger = LogManager.getLogger(ReplaceTestCaseMutation.class.getName());
@@ -17,16 +19,13 @@ public class ReplaceTestCaseMutation extends AbstractMutationOperator {
 
 	protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) throws RESTestException {
 		if(getRandomGenerator().nextDouble() <= mutationProbability) {
-			int maxTestCasesToReplace = (int) (getRandomGenerator().nextDouble() * maxMutationsRatio * solution.getNumberOfVariables());
-			for (int index=0; index < maxTestCasesToReplace; index++) {
-				int replacedTestCaseIndex = getRandomGenerator().nextInt(0, solution.getVariables().size() - 1);
-				TestCase replacedTestCase = solution.getVariable(replacedTestCaseIndex);
-				TestCase insertedTestCase = solution.getProblem().createRandomTestCase();
-				solution.setVariable(replacedTestCaseIndex, insertedTestCase);
-				solution.removeTestResult(replacedTestCase.getId());
-				solution.setTestResult(insertedTestCase.getId(), null);
-				logger.info("Mutation probability fulfilled! Test case replaced in test suite.");
-			}
+			int replacedTestCaseIndex = getRandomGenerator().nextInt(0, solution.getVariables().size()-1);
+			TestCase replacedTestCase = solution.getVariable(replacedTestCaseIndex);
+			TestCase insertedTestCase = solution.getProblem().createRandomTestCase();
+			solution.setVariable(replacedTestCaseIndex, insertedTestCase);
+			solution.removeTestResult(replacedTestCase.getId());
+			solution.setTestResult(insertedTestCase.getId(), null);
+			logger.info("Mutation probability fulfilled! Test case replaced in test suite.");
 		}
 		
 	}
