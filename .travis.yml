@@ -11,4 +11,4 @@ addons:
 install:
   - ./install_dependencies.sh
 script:
-  - mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=isa-group_RESTest-search-based -Dsonar.projectName=RESTest-search-based -Dsonar.sources=src/main/java -Dsonar.tests=src/test/java
+  - mvn -e clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=isa-group_RESTest-search-based -Dsonar.projectName=RESTest-search-based -Dsonar.sources=src/main/java -Dsonar.tests=src/test/java
