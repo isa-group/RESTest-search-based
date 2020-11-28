@@ -67,4 +67,9 @@ public class RandomSearch implements SearchBasedAlgorithm {
 	public List<RestfulAPITestSuiteSolution> currentSolutions() {
 		return nonDominatedArchive.getSolutionList();
 	}
+
+	@Override
+	public TerminationCriterion getTerminationCriterion() {
+		return terminationCriterion;
+	}
 }

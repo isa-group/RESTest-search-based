@@ -2,53 +2,45 @@ package es.us.isa.restest.searchbased.experiment;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
-
+import es.us.isa.restest.searchbased.SearchBasedTestSuiteGenerator;
+import es.us.isa.restest.searchbased.algorithms.SearchBasedAlgorithm;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
-import es.us.isa.restest.searchbased.operators.AbstractCrossoverOperator;
-import es.us.isa.restest.searchbased.operators.AbstractMutationOperator;
 import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
+import es.us.isa.restest.specification.OpenAPISpecification;
+
 //import javax.annotation.Generated;
 import java.util.Collections;
 
 /**
- * This class represents the configuration of an algorithm in the context of an experiment
+ * This class represents the configuration of an algorithm in the context of an
+ * experiment
  * 
  * @author japarejo
  *
  */
 
-
 public class ExperimentalConfiguration implements Serializable {
+
 	int id;
+	// Experiment data:
 	String experimentName;
+	String targetDir; // Directory where tests will be generated.
+	String packageName; // Package name
+	String testClassName; // Name of the class where tests will be written.
+	long seed;
+	// Problem data:
 	String openApiSpecPath;
 	String configFilePath;
-    String targetDir; // Directory where tests will be generated.
-    String packageName; // Package name
-    String testClassName; // Name of the class where tests will be written.
-    long seed;
-	
-	
-	int minTestSuiteSize; 
-    int maxTestSuiteSize;
-    int populationSize;		 // Population size for the evolutionary algorithm    
-    Map<AbstractMutationOperator,Double> mutationProbabilities; // These will include usually:
-    	// AddTestCaseMutation
-    	// RemoveTestCaseMutation
-    	// ReplaceTestCaseMutation
-    	// AddParameterMutation
-    	// RemoveParameterMutation
-    	// RandomParameterValueMutation
-    Map<AbstractCrossoverOperator,Double> crossoverProbabilities; 
-    List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
-    TerminationCriterion terminationCriterion;
+	int minTestSuiteSize;
+	int maxTestSuiteSize;
+	List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
+	// Algorithm data:
+	SearchBasedAlgorithm algorithm;
 
-
-	//@Generated("SparkTools")
-	private ExperimentalConfiguration(Builder builder) {
+	// @Generated("SparkTools")
+	private ExperimentalConfiguration(DefaultAlgorithmBuilder builder) {
 		this.experimentName = builder.experimentName;
 		this.openApiSpecPath = builder.openApiSpecPath;
 		this.configFilePath = builder.configFilePath;
@@ -56,29 +48,58 @@ public class ExperimentalConfiguration implements Serializable {
 		this.packageName = builder.packageName;
 		this.testClassName = builder.testClassName;
 		this.seed = builder.seed;
+		this.objectiveFunctions = builder.objectiveFunctions;
+		this.minTestSuiteSize = builder.minTestSuiteSize;
+		this.maxTestSuiteSize = builder.maxTestSuiteSize;		
+		
+		this.algorithm = SearchBasedTestSuiteGenerator.
+				createDefaultAlgorithm(seed, 
+						builder.populationSize, 
+						builder.mutationProbabilities, 
+						builder.crossoverProbability,
+						SearchBasedTestSuiteGenerator.buildProblem(
+								new OpenAPISpecification(openApiSpecPath), 
+								configFilePath, 
+								objectiveFunctions, 
+								targetDir, 
+								minTestSuiteSize, 
+								maxTestSuiteSize), 
+						builder.terminationCriterion);
+	}
+
+	public ExperimentalConfiguration(Builder builder) {
+		this.experimentName = builder.experimentName;
+		this.openApiSpecPath = builder.openApiSpecPath;
+		this.configFilePath = builder.configFilePath;
+		this.targetDir = builder.targetDir;
+		this.packageName = builder.packageName;
+		this.testClassName = builder.testClassName;
+		this.seed = builder.seed;
+		this.objectiveFunctions = builder.objectiveFunctions;
 		this.minTestSuiteSize = builder.minTestSuiteSize;
 		this.maxTestSuiteSize = builder.maxTestSuiteSize;
-		this.populationSize = builder.populationSize;
-		this.mutationProbabilities = builder.mutationProbabilities;
-		this.crossoverProbabilities = builder.crossoverProbabilities;
-		this.objectiveFunctions = builder.objectiveFunctions;
-		this.terminationCriterion = builder.terminationCriterion;
+		this.algorithm = builder.algorithm;
 	}
-	
-    
-    /**
+
+	/**
 	 * Creates builder to build {@link ExperimentalConfiguration}.
+	 * 
 	 * @return created builder
 	 */
-	//@Generated("SparkTools")
+	// @Generated("SparkTools")
+	public static DefaultAlgorithmBuilder defaultAlgorithmBuilder() {
+		return new DefaultAlgorithmBuilder();
+	}
+	
 	public static Builder builder() {
 		return new Builder();
 	}
+
 	/**
 	 * Builder to build {@link ExperimentalConfiguration}.
 	 */
-	//@Generated("SparkTools")
-	public static final class Builder {
+	// @Generated("SparkTools")
+	public static final class DefaultAlgorithmBuilder {
 		private String experimentName;
 		private String openApiSpecPath;
 		private String configFilePath;
@@ -89,11 +110,103 @@ public class ExperimentalConfiguration implements Serializable {
 		private int minTestSuiteSize;
 		private int maxTestSuiteSize;
 		private int populationSize;
-		private Map<AbstractMutationOperator, Double> mutationProbabilities = Collections.emptyMap();
-		private Map<AbstractCrossoverOperator, Double> crossoverProbabilities = Collections.emptyMap();
+		private double[] mutationProbabilities;
+		private double crossoverProbability;
 		private List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Collections.emptyList();
 		private TerminationCriterion terminationCriterion;
 
+		private DefaultAlgorithmBuilder() {
+		}
+
+		public DefaultAlgorithmBuilder withOpenApiSpecPath(String openApiSpecPath) {
+			this.openApiSpecPath = openApiSpecPath;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withExperimentName(String experimentName) {
+			this.experimentName = experimentName;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withTargetDir(String targetDir) {
+			this.targetDir = targetDir;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withConfigFilePath(String configFilePath) {
+			this.configFilePath = configFilePath;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withPackageName(String packageName) {
+			this.packageName = packageName;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withTestClassName(String testClassName) {
+			this.testClassName = testClassName;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withSeed(long seed) {
+			this.seed = seed;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withMinTestSuiteSize(int minTestSuiteSize) {
+			this.minTestSuiteSize = minTestSuiteSize;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withMaxTestSuiteSize(int maxTestSuiteSize) {
+			this.maxTestSuiteSize = maxTestSuiteSize;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withPopulationSize(int populationSize) {
+			this.populationSize = populationSize;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withMutationProbabilities(double [] mutationProbabilities) {
+			this.mutationProbabilities = mutationProbabilities;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withCrossoverProbability(double probability) {
+			this.crossoverProbability = probability;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withObjectiveFunctions(
+				List<RestfulAPITestingObjectiveFunction> objectiveFunctions) {
+			this.objectiveFunctions = objectiveFunctions;
+			return this;
+		}
+
+		public DefaultAlgorithmBuilder withTerminationCriterion(TerminationCriterion terminationCriterion) {
+			this.terminationCriterion = terminationCriterion;
+			return this;
+		}
+
+		public ExperimentalConfiguration build() {
+			return new ExperimentalConfiguration(this);
+		}
+	}
+
+	public static final class Builder {
+		private String experimentName;
+		private String openApiSpecPath;
+		private String configFilePath;
+		private String targetDir;
+		private String packageName;
+		private String testClassName;
+		private List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Collections.emptyList();
+		private long seed;
+		private int minTestSuiteSize;
+		private int maxTestSuiteSize;
+		private SearchBasedAlgorithm algorithm;
+		
 		private Builder() {
 		}
 
@@ -101,7 +214,7 @@ public class ExperimentalConfiguration implements Serializable {
 			this.openApiSpecPath = openApiSpecPath;
 			return this;
 		}
-		
+
 		public Builder withExperimentName(String experimentName) {
 			this.experimentName = experimentName;
 			return this;
@@ -111,7 +224,7 @@ public class ExperimentalConfiguration implements Serializable {
 			this.targetDir = targetDir;
 			return this;
 		}
-		
+
 		public Builder withConfigFilePath(String configFilePath) {
 			this.configFilePath = configFilePath;
 			return this;
@@ -142,119 +255,80 @@ public class ExperimentalConfiguration implements Serializable {
 			return this;
 		}
 
-		public Builder withPopulationSize(int populationSize) {
-			this.populationSize = populationSize;
+		public Builder withAlgorithm(SearchBasedAlgorithm algorithm) {
+			this.algorithm = algorithm;
 			return this;
 		}
-
-		public Builder withMutationProbabilities(Map<AbstractMutationOperator, Double> mutationProbabilities) {
-			this.mutationProbabilities = mutationProbabilities;
-			return this;
-		}
-
-		public Builder withCrossoverProbabilities(Map<AbstractCrossoverOperator, Double> crossoverProbabilities) {
-			this.crossoverProbabilities = crossoverProbabilities;
-			return this;
-		}
-
-		public Builder withObjectiveFunctions(List<RestfulAPITestingObjectiveFunction> objectiveFunctions) {
+		
+		public Builder withObjectiveFunctions(
+				List<RestfulAPITestingObjectiveFunction> objectiveFunctions) {
 			this.objectiveFunctions = objectiveFunctions;
 			return this;
 		}
-
-		public Builder withTerminationCriterion(TerminationCriterion terminationCriterion) {
-			this.terminationCriterion = terminationCriterion;
-			return this;
-		}
-
+		
 		public ExperimentalConfiguration build() {
 			return new ExperimentalConfiguration(this);
 		}
 	}
+
 	public int getId() {
 		return id;
 	}
-
 
 	public String getExperimentName() {
 		return experimentName;
 	}
 
-
 	public String getTargetDir() {
 		return targetDir;
 	}
-
 
 	public String getPackageName() {
 		return packageName;
 	}
 
-
 	public String getTestClassName() {
 		return testClassName;
 	}
-
 
 	public long getSeed() {
 		return seed;
 	}
 
-
 	public int getMinTestSuiteSize() {
 		return minTestSuiteSize;
 	}
-
 
 	public int getMaxTestSuiteSize() {
 		return maxTestSuiteSize;
 	}
 
-
-	public int getPopulationSize() {
-		return populationSize;
+	public String getOpenApiSpecPath() {
+		return openApiSpecPath;
 	}
 
-
-	public Map<AbstractMutationOperator, Double> getMutationProbabilities() {
-		return mutationProbabilities;
+	public String getConfigFilePath() {
+		return configFilePath;
 	}
-
-
-	public Map<AbstractCrossoverOperator, Double> getCrossoverProbabilities() {
-		return crossoverProbabilities;
-	}
-
-
+	
 	public List<RestfulAPITestingObjectiveFunction> getObjectiveFunctions() {
 		return objectiveFunctions;
 	}
 
-
-	public TerminationCriterion getTerminationCriterion() {
-		return terminationCriterion;
-	}
-    
-	public String getOpenApiSpecPath() {
-		return openApiSpecPath;
+	public SearchBasedAlgorithm getAlgorithm() {
+		return algorithm;
 	}
 	
-	public String getConfigFilePath() {
-		return configFilePath;
-	}
-
-
 	public ExperimentReport generateExperimentReport() {
-		ExperimentReport experimentReport=new ExperimentReport(experimentName);
-        experimentReport.setStoppingCriterion(terminationCriterion.toString());
-        experimentReport.setCurrentStoppingCriterionState(0d);
-        if(terminationCriterion instanceof MaxEvaluations)
-        	experimentReport.setStoppingCriterionMax(((MaxEvaluations)terminationCriterion).getStoppingCriterionMax());
-        experimentReport.setCurrentSolutionIndex(0);
-        objectiveFunctions.forEach(objFunc -> objFunc.setExperimentReport(experimentReport));
-        //terminationCriterion.setExperimentReport(experimentReport);
-        return experimentReport;
+		ExperimentReport experimentReport = new ExperimentReport(experimentName);
+		experimentReport.setStoppingCriterion(algorithm.getTerminationCriterion().toString());
+		experimentReport.setCurrentStoppingCriterionState(0d);
+		if (algorithm.getTerminationCriterion() instanceof MaxEvaluations)
+			experimentReport.setStoppingCriterionMax(((MaxEvaluations) algorithm.getTerminationCriterion()).getStoppingCriterionMax());
+		experimentReport.setCurrentSolutionIndex(0);
+		objectiveFunctions.forEach(objFunc -> objFunc.setExperimentReport(experimentReport));
+		// terminationCriterion.setExperimentReport(experimentReport);
+		return experimentReport;
 	}
-    
-    
+
 }

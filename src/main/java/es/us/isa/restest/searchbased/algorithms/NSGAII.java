@@ -51,4 +51,9 @@ public class NSGAII extends org.uma.jmetal.algorithm.multiobjective.nsgaii.NSGAI
 	public List<RestfulAPITestSuiteSolution> currentSolutions() {
 		return getResult();
 	}
+
+	@Override
+	public TerminationCriterion getTerminationCriterion() {
+		return terminationCriterion;
+	}
 }

@@ -89,12 +89,12 @@ public class MultipleExperiments {
 //    private static int[] maxEvaluationsArray = {1000, 5000, 10000};
 //    private static int[] maxExecutedRequestsArray= {1000, 5000, 10000};
     
-    private static AbstractMutationOperator[] operatorsOrder={new AddTestCaseMutation(0, null),
-    													 new RemoveTestCaseMutation(0, null),
-    													 new ReplaceTestCaseMutation(0, null),
-    													 new AddParameterMutation(0, null),
-    													 new RemoveParameterMutation(0, null),
-    													 new RandomParameterValueMutation(0, null)};
+    private static AbstractMutationOperator[] operatorsOrder={new AddTestCaseMutation(0),
+    													 new RemoveTestCaseMutation(0),
+    													 new ReplaceTestCaseMutation(0),
+    													 new AddParameterMutation(0),
+    													 new RemoveParameterMutation(0),
+    													 new RandomParameterValueMutation(0)};
     private static double[][] mutationProbabilitiesArray = {
             {
                     0.01, // AddTestCaseMutation
@@ -233,19 +233,12 @@ public class MultipleExperiments {
      // Create experiment report and set it up
         ExperimentReport experimentReport = config.generateExperimentReport();        
                 
-        SearchBasedTestSuiteGenerator generator = new SearchBasedTestSuiteGenerator(
-                spec,
-                 config.getConfigFilePath(),
-                config.getExperimentName(),
-                config.getObjectiveFunctions(),
+        SearchBasedTestSuiteGenerator generator = new SearchBasedTestSuiteGenerator(                 
+                config.getExperimentName(),                
                 config.getTargetDir(),
                 config.getSeed(),
-                config.getMinTestSuiteSize(),
-                config.getMaxTestSuiteSize(),
-                config.getPopulationSize(),
-                toProbArray(config.getMutationProbabilities()),
-                config.getCrossoverProbabilities().entrySet().iterator().next().getValue().doubleValue(),
-                config.getTerminationCriterion(),
+                config.getAlgorithm().getProblem(),
+                config.getAlgorithm(),
                 runner,
                 experimentReport
         );
@@ -365,7 +358,7 @@ public class MultipleExperiments {
 
 */
                                         		objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
-                                        	ExperimentalConfiguration config=ExperimentalConfiguration.builder()                                        			
+                                        	ExperimentalConfiguration config=ExperimentalConfiguration.defaultAlgorithmBuilder()                                        			
                                         			/// General experiment parameters:                                        		
                                         			.withExperimentName(experimentName)
                                         			.withTargetDir(targetDir)
@@ -375,8 +368,8 @@ public class MultipleExperiments {
                                         			.withMaxTestSuiteSize(maxTestSuiteSize)                                        			
                                         			// Algorithms parameters:
                                         			.withPopulationSize(populationSize)
-                                        			.withMutationProbabilities(buildMutationProbabilities(mutationProbabilities))
-                                        			.withCrossoverProbabilities(buildCrossoverProbabilities(crossoverProbability))
+                                        			.withMutationProbabilities(mutationProbabilities)
+                                        			.withCrossoverProbability(crossoverProbability)
                                         			.withTerminationCriterion(terminationCriterion)
                                         			.build();
                                         										
@@ -391,20 +384,7 @@ public class MultipleExperiments {
             }
         }
 		return configurations;
-	}
-
-
-	private static Map<AbstractCrossoverOperator, Double> buildCrossoverProbabilities(double crossoverProbability) {
-		Map<AbstractCrossoverOperator, Double> crossoverProbabilities=new HashMap<AbstractCrossoverOperator, Double>();
-		AbstractCrossoverOperator operator=new SinglePointTestSuiteCrossover(crossoverProbability);
-		crossoverProbabilities.put(operator, crossoverProbability);
-		return crossoverProbabilities;
-	}
-
-	private static Map<AbstractMutationOperator, Double> buildMutationProbabilities(double[] mutationProbabilities2) {
-		Map<AbstractMutationOperator, Double> mutationProbabilities=new HashMap<AbstractMutationOperator, Double>();
-		return mutationProbabilities;
-	}
+	}		
 
 	private static void exportExperimentReports(String path) {
         CSVManager.createCSVwithHeader(path, ExperimentReport.getGeneralStatsCsvHeader());
