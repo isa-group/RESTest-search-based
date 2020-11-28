@@ -11,7 +11,7 @@ import es.us.isa.restest.specification.ParameterFeatures;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.util.RESTestException;
 import org.javatuples.Pair;
-import org.uma.jmetal.operator.MutationOperator;
+import org.uma.jmetal.operator.mutation.MutationOperator;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.Collection;

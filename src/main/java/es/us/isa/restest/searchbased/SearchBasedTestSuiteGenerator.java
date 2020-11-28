@@ -21,20 +21,21 @@ import es.us.isa.restest.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.operator.SelectionOperator;
-import org.uma.jmetal.operator.impl.selection.BinaryTournamentSelection;
+import org.uma.jmetal.operator.selection.SelectionOperator;
+import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.qualityindicator.impl.*;
-import org.uma.jmetal.qualityindicator.impl.hypervolume.PISAHypervolume;
-import org.uma.jmetal.util.AlgorithmRunner;
+import org.uma.jmetal.qualityindicator.impl.hypervolume.impl.PISAHypervolume;
+import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
-import org.uma.jmetal.util.experiment.Experiment;
-import org.uma.jmetal.util.experiment.ExperimentBuilder;
-import org.uma.jmetal.util.experiment.component.*;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentProblem;
+import org.uma.jmetal.lab.experiment.Experiment;
+import org.uma.jmetal.lab.experiment.ExperimentBuilder;
+import org.uma.jmetal.lab.experiment.component.*;
+import org.uma.jmetal.lab.experiment.component.impl.*;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import org.uma.jmetal.util.pseudorandom.impl.MersenneTwisterGenerator;
 
@@ -172,10 +173,10 @@ public class SearchBasedTestSuiteGenerator {
     	JMetalLogger.logger.info("Generating testSuites for: " + problem.getName() + " using as objectives :"+ problem.getObjectiveFunctions() );
     	JMetalLogger.logger.info("Starting the execution of: " + algorithms.get(0).getAlgorithm().getClass().getSimpleName());
         Timer.startCounting(TEST_SUITE_GENERATION);
-    	 AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor((Algorithm<?>) algorithms.get(0).getAlgorithm())
-    		        .execute() ;
+        long start=System.currentTimeMillis();
+        algorithms.get(0).getAlgorithm().run();        
         Timer.stopCounting(TEST_SUITE_GENERATION);
-    	 long computingTime = algorithmRunner.getComputingTime() ;
+    	 long computingTime = System.currentTimeMillis()-start ;
 
     	 List<RestfulAPITestSuiteSolution> suites=algorithms.get(0).getAlgorithm().getResult();
 
