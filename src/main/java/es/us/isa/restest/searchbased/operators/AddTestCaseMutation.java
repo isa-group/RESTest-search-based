@@ -9,8 +9,12 @@ import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 public class AddTestCaseMutation extends AbstractMutationOperator {
 
+	private static final long serialVersionUID = -5748485902107048811L;
+
 	private static final Logger logger = LogManager.getLogger(AddTestCaseMutation.class.getName());
 
+	public AddTestCaseMutation(double mutationProbability) {super(mutationProbability);}
+	
 	public AddTestCaseMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
 		super(mutationProbability, randomGenerator);
 	}

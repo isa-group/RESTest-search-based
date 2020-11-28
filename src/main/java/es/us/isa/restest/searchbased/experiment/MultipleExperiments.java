@@ -6,15 +6,52 @@
 package es.us.isa.restest.searchbased.experiment;
 
 
+import static es.us.isa.restest.util.FileManager.createDir;
+import static es.us.isa.restest.util.FileManager.deleteDir;
+import static es.us.isa.restest.util.PropertyManager.readProperty;
+import static es.us.isa.restest.util.Timer.TestStep.ALL;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.uma.jmetal.operator.MutationOperator;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import es.us.isa.restest.coverage.CoverageGatherer;
 import es.us.isa.restest.coverage.CoverageMeter;
 import es.us.isa.restest.reporting.AllureReportManager;
 import es.us.isa.restest.reporting.StatsReportManager;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.SearchBasedTestSuiteGenerator;
-import es.us.isa.restest.searchbased.objectivefunction.*;
+import es.us.isa.restest.searchbased.objectivefunction.BalanceOfValidTestsRatio;
+import es.us.isa.restest.searchbased.objectivefunction.Coverage;
+import es.us.isa.restest.searchbased.objectivefunction.Diversity;
+import es.us.isa.restest.searchbased.objectivefunction.Element;
+import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
+import es.us.isa.restest.searchbased.objectivefunction.SimilarityMeter;
+import es.us.isa.restest.searchbased.objectivefunction.UniqueElements;
+import es.us.isa.restest.searchbased.operators.AbstractCrossoverOperator;
+import es.us.isa.restest.searchbased.operators.AbstractMutationOperator;
+import es.us.isa.restest.searchbased.operators.AddParameterMutation;
+import es.us.isa.restest.searchbased.operators.AddTestCaseMutation;
+import es.us.isa.restest.searchbased.operators.RandomParameterValueMutation;
+import es.us.isa.restest.searchbased.operators.RemoveParameterMutation;
+import es.us.isa.restest.searchbased.operators.RemoveTestCaseMutation;
+import es.us.isa.restest.searchbased.operators.ReplaceTestCaseMutation;
+import es.us.isa.restest.searchbased.operators.SinglePointTestSuiteCrossover;
 import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxExecutedRequests;
@@ -29,20 +66,6 @@ import es.us.isa.restest.util.CSVManager;
 import es.us.isa.restest.util.PropertyManager;
 import es.us.isa.restest.util.TestManager;
 import es.us.isa.restest.util.Timer;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static es.us.isa.restest.util.FileManager.createDir;
-import static es.us.isa.restest.util.FileManager.deleteDir;
-import static es.us.isa.restest.util.PropertyManager.readProperty;
-import static es.us.isa.restest.util.Timer.TestStep.ALL;
 
 /**
  *
@@ -50,8 +73,14 @@ import static es.us.isa.restest.util.Timer.TestStep.ALL;
  */
 public class MultipleExperiments {
 
+	private static final Logger logger = LogManager.getLogger(MultipleExperiments.class.getName());
+	
+	private static int checkpointFrequency=10; // We will save a checkpoint each X individual runs
+	
     // Final report to be generated:
-    private static List<ExperimentReport> experimentReports = new ArrayList<>();
+    private static String reportPath;
+	private static List<ExperimentReport> experimentReports = new ArrayList<>();
+    
 
     // Experiment parameters
     private static int[] minTestSuiteSizeArray = {100, 200, 500}; // These sizes can be justified with EvoMaster
@@ -59,6 +88,13 @@ public class MultipleExperiments {
     private static int[] populationSizeArray = {10, 20}; // Population size for the evolutionary algorithm
 //    private static int[] maxEvaluationsArray = {1000, 5000, 10000};
 //    private static int[] maxExecutedRequestsArray= {1000, 5000, 10000};
+    
+    private static AbstractMutationOperator[] operatorsOrder={new AddTestCaseMutation(0, null),
+    													 new RemoveTestCaseMutation(0, null),
+    													 new ReplaceTestCaseMutation(0, null),
+    													 new AddParameterMutation(0, null),
+    													 new RemoveParameterMutation(0, null),
+    													 new RandomParameterValueMutation(0, null)};
     private static double[][] mutationProbabilitiesArray = {
             {
                     0.01, // AddTestCaseMutation
@@ -128,19 +164,128 @@ public class MultipleExperiments {
     private static String testClassName; // Name of the class where tests will be written.
     private static long seed;
 
-    private static final Logger logger = LogManager.getLogger(MultipleExperiments.class.getName());
+    
 
     public static void main(String[] args) {
         // Create CSV file with stats of all experiments
-        String reportPath = readProperty("search.stats.dir")
+        reportPath = readProperty("search.stats.dir")
                 + "/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10)
                 + "_" + readProperty("search.stats.general.file");
         createDir(readProperty("search.stats.dir"));
 //        String objFuncPath = searchStatsDirectory + "/" + readProperty("search.stats.objfunc.file");
         CSVManager.createCSVwithHeader(reportPath, ExperimentReport.getGeneralStatsCsvHeader());
 //        CSVManager.createCSVwithHeader(objFuncPath, ExperimentReport.getObjFuncStatsCsvHeader());
+    	// Setup:
+    	int execution=0;
+    	List<ExperimentalConfiguration> experimentalConfigurations=generateExperimentalConfigurations();
+    	List<ExperimentalConfiguration> executedConfigurations=new ArrayList();
+    	Collections.shuffle(experimentalConfigurations);    	
+    	// Execution:
+    	for(ExperimentalConfiguration experimentalConfiguration:experimentalConfigurations) {
+    		run(experimentalConfiguration);
+    		executedConfigurations.add(experimentalConfiguration);
+    		if(execution%checkpointFrequency==0) {
+    			generateCheckpoint(experimentalConfigurations,executedConfigurations);
+    		}
+    		execution++;
+    	}
+    	
 
-        for (int i : minTestSuiteSizeArray) {
+        logger.info("A total of {} experiment folders have been generated:\n{}", experimentNames.size(), String.join("\n", experimentNames));        
+        exportExperimentReports(reportPath);
+
+        logger.info("Generated experiment report in the following path: {}", reportPath);
+    }
+
+    /**
+     * Checkpoining usin a JSON file with the experimental configurations to be executed.
+     */
+    private static void generateCheckpoint(List<ExperimentalConfiguration> experimentalConfigurations,
+		List<ExperimentalConfiguration> executedConfigurations) {
+    	ObjectMapper JSONmapper=new ObjectMapper();
+    	String checkpointPath ="target/test-data/checkpoint.json";
+		List<ExperimentalConfiguration> expConfsToSave=experimentalConfigurations.stream()
+				.filter((expConf) -> !executedConfigurations.contains(expConf))
+				.collect(Collectors.toList());
+		try {
+			JSONmapper.writeValue(new File(checkpointPath), expConfsToSave);
+		} catch (IOException e) {
+			logger.error("Unable to save checkpoint!:"+e.getLocalizedMessage());
+			e.printStackTrace();
+		}
+		
+	}
+
+	private static void run(ExperimentalConfiguration config) {
+        Timer.resetCounters();
+        Timer.startCounting(ALL);
+        
+        createDir(config.getTargetDir());
+
+        spec = new OpenAPISpecification(config.getOpenApiSpecPath());
+
+        // RESTest runner
+        IWriter writer = createWriter();                                    // Test case writer
+        AllureReportManager reportManager = createAllureReportManager();    // Allure test case reporter
+        StatsReportManager statsReportManager = createStatsReportManager(); // Stats reporter
+        SearchBasedRunner runner = new SearchBasedRunner(config.getTestClassName(), config.getTargetDir(), config.getPackageName(), null, (RESTAssuredWriter) writer, reportManager, statsReportManager);
+
+     // Create experiment report and set it up
+        ExperimentReport experimentReport = config.generateExperimentReport();        
+                
+        SearchBasedTestSuiteGenerator generator = new SearchBasedTestSuiteGenerator(
+                spec,
+                 config.getConfigFilePath(),
+                config.getExperimentName(),
+                config.getObjectiveFunctions(),
+                config.getTargetDir(),
+                config.getSeed(),
+                config.getMinTestSuiteSize(),
+                config.getMaxTestSuiteSize(),
+                config.getPopulationSize(),
+                toProbArray(config.getMutationProbabilities()),
+                config.getCrossoverProbabilities().entrySet().iterator().next().getValue().doubleValue(),
+                config.getTerminationCriterion(),
+                runner,
+                experimentReport
+        );
+
+        try {
+            generator.run();
+            
+            Timer.stopCounting(ALL);
+            generateTimeReport();
+            logger.info("Results saved to folder {}", experimentName);
+            
+            
+         // Update file containing stats from all experiments
+            updateExperimentReport(experimentReport, generator, statsReportManager);
+            CSVManager.writeCSVRow(reportPath, experimentReport.getGeneralStatsCsvRow());
+
+            // Create file containing objFunc stats from this specific experiment
+            String objFuncDir = readProperty("search.stats.dir") + "/" + experimentName;
+            createDir(objFuncDir);
+            String objFuncPath = objFuncDir + "/" + readProperty("search.stats.objfunc.file");
+            CSVManager.createCSVwithHeader(objFuncPath, ExperimentReport.getObjFuncStatsCsvHeader());
+            CSVManager.writeCSVRow(objFuncPath, experimentReport.getObjFuncStatsCsvRows());
+        } catch (IOException ex) {
+            logger.error(ex);
+        }		
+	}
+
+	
+
+	private static double[] toProbArray(Map<AbstractMutationOperator, Double> mutationProbabilities) {		
+		double []result=new double[operatorsOrder.length];
+		for(int i=0;i<operatorsOrder.length;i++) {
+			result[i]=mutationProbabilities.get(operatorsOrder[i]);		
+		}
+		return result;
+	}
+
+	private static List<ExperimentalConfiguration> generateExperimentalConfigurations() {
+        List<ExperimentalConfiguration> configurations=new ArrayList<>();
+		for (int i : minTestSuiteSizeArray) {
             minTestSuiteSize = i;
             for (int j : maxTestSuiteSizeArray) {
                 maxTestSuiteSize = j;
@@ -156,6 +301,7 @@ public class MultipleExperiments {
                                     for (AbstractTerminationCriterion o : terminationCriterionArray) {
                                         terminationCriterion = o;
                                         if (!(terminationCriterion instanceof MaxExecutedRequests &&
+/*
                                                 objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
 
                                             // API parameters
@@ -163,17 +309,7 @@ public class MultipleExperiments {
                                             experimentNames.add(experimentName);
                                             targetDir = "src/generation/java/" + experimentName; // Directory where tests will be generated.
                                             packageName = experimentName;							// Package name
-                                            testClassName = experimentName.substring(0,1).toUpperCase() + experimentName.substring(1); // Name of the class where tests will be written.
-
-                                            // Create experiment report and set it up
-                                            ExperimentReport experimentReport = new ExperimentReport(experimentName);
-                                            experimentReport.setStoppingCriterion(terminationCriterion.toString());
-                                            experimentReport.setCurrentStoppingCriterionState(0d);
-                                            experimentReport.setStoppingCriterionMax(terminationCriterion.getStoppingCriterionMax());
-                                            experimentReport.setCurrentSolutionIndex(0);
-                                            objectiveFunctions.forEach(objFunc -> objFunc.setExperimentReport(experimentReport));
-                                            terminationCriterion.setExperimentReport(experimentReport);
-                                            terminationCriterion.reset();
+                                            testClassName = experimentName.substring(0,1).toUpperCase() + experimentName.substring(1); // Name of the class where tests will be written.                                           
 
                                             seed = RandomUtils.nextLong();
 
@@ -227,6 +363,24 @@ public class MultipleExperiments {
                                                 logger.error(ex);
                                             }
 
+*/
+                                        		objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
+                                        	ExperimentalConfiguration config=ExperimentalConfiguration.builder()                                        			
+                                        			/// General experiment parameters:                                        		
+                                        			.withExperimentName(experimentName)
+                                        			.withTargetDir(targetDir)
+                                        			.withSeed(seed)
+                                        			// Problem parameters:                                        			
+                                        			.withMinTestSuiteSize(minTestSuiteSize)
+                                        			.withMaxTestSuiteSize(maxTestSuiteSize)                                        			
+                                        			// Algorithms parameters:
+                                        			.withPopulationSize(populationSize)
+                                        			.withMutationProbabilities(buildMutationProbabilities(mutationProbabilities))
+                                        			.withCrossoverProbabilities(buildCrossoverProbabilities(crossoverProbability))
+                                        			.withTerminationCriterion(terminationCriterion)
+                                        			.build();
+                                        										
+                                        	configurations.add(config);								
                                         }
                                     }
                                 }
@@ -236,11 +390,27 @@ public class MultipleExperiments {
                 }
             }
         }
+		return configurations;
+	}
 
-        logger.info("A total of {} experiment folders have been generated:\n{}", experimentNames.size(), String.join("\n", experimentNames));
-        logger.info("The multi-experiment report is available at the following path: {}", reportPath);
+
+	private static Map<AbstractCrossoverOperator, Double> buildCrossoverProbabilities(double crossoverProbability) {
+		Map<AbstractCrossoverOperator, Double> crossoverProbabilities=new HashMap<AbstractCrossoverOperator, Double>();
+		AbstractCrossoverOperator operator=new SinglePointTestSuiteCrossover(crossoverProbability);
+		crossoverProbabilities.put(operator, crossoverProbability);
+		return crossoverProbabilities;
+	}
+
+	private static Map<AbstractMutationOperator, Double> buildMutationProbabilities(double[] mutationProbabilities2) {
+		Map<AbstractMutationOperator, Double> mutationProbabilities=new HashMap<AbstractMutationOperator, Double>();
+		return mutationProbabilities;
+	}
+
+	private static void exportExperimentReports(String path) {
+        CSVManager.createCSVwithHeader(path, ExperimentReport.getGeneralStatsCsvHeader());
+        experimentReports.forEach(e -> CSVManager.writeCSVRow(path, e.getGeneralStatsCsvRow()));
     }
-
+	
     private static void updateExperimentReport(ExperimentReport experimentReport, SearchBasedTestSuiteGenerator generator, StatsReportManager statsReportManager) throws IOException {
         List<TestResult> testResults = TestManager.getTestResults(statsReportManager.getTestDataDir() + "/test-results.csv");
 

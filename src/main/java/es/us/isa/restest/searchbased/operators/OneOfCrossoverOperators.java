@@ -9,6 +9,8 @@ import java.util.Map;
 
 public class OneOfCrossoverOperators extends AbstractCrossoverOperator {
 
+	private static final long serialVersionUID = 7549897246068674872L;
+	
 	Map<? extends AbstractCrossoverOperator,Double> operators;
 	Double total;
 

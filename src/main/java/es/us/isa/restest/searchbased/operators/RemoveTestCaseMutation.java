@@ -12,8 +12,13 @@ import java.util.List;
 
 public class RemoveTestCaseMutation extends AbstractMutationOperator {
 
+	
+	private static final long serialVersionUID = 4755987565621007376L;
+	
 	private static final Logger logger = LogManager.getLogger(RemoveTestCaseMutation.class.getName());
 
+	public RemoveTestCaseMutation(double mutationProbability) {super(mutationProbability);}
+	
 	public RemoveTestCaseMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
 		super(mutationProbability, randomGenerator);		
 	}

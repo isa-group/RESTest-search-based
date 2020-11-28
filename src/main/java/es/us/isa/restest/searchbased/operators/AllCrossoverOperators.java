@@ -7,6 +7,8 @@ import java.util.List;
 
 public class AllCrossoverOperators extends AbstractCrossoverOperator {
 
+	private static final long serialVersionUID = -4611242208551823511L;
+	
 	List<? extends AbstractCrossoverOperator> operators;
 
 	public AllCrossoverOperators(List<? extends AbstractCrossoverOperator> operators) {

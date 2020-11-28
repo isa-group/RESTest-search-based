@@ -33,6 +33,8 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RandomParameterValueMutation.class.getName());
 
+    public RandomParameterValueMutation(double mutationProbability) {super(mutationProbability);}
+    
     public RandomParameterValueMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         super(mutationProbability, randomGenerator);
     }

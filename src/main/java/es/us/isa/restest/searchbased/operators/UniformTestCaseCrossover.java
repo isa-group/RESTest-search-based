@@ -14,6 +14,8 @@ import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
 
 public class UniformTestCaseCrossover extends AbstractCrossoverOperator {
 
+	private static final long serialVersionUID = -8301953882670719993L;
+
 	private static final Logger logger = LogManager.getLogger(UniformTestCaseCrossover.class.getName());
 
 	private boolean mutationApplied;

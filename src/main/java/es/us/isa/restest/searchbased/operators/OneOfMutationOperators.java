@@ -7,6 +7,8 @@ import java.util.Map;
 
 public class OneOfMutationOperators extends AbstractMutationOperator {
 
+	private static final long serialVersionUID = 926411558807012601L;
+	
 	Map<? extends AbstractMutationOperator,Double> operators;
 	Double total;
 	

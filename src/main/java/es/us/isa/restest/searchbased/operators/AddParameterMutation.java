@@ -25,9 +25,13 @@ import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
  * @author japar
  */
 public class AddParameterMutation extends AbstractMutationOperator {
+    
+	private static final long serialVersionUID = -8925706580080427799L;
 
-    private static final Logger logger = LogManager.getLogger(AddParameterMutation.class.getName());
+	private static final Logger logger = LogManager.getLogger(AddParameterMutation.class.getName());
 
+    public AddParameterMutation(double mutationProbability) {super(mutationProbability);}
+    
     public AddParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         super(mutationProbability, randomGenerator);
     }

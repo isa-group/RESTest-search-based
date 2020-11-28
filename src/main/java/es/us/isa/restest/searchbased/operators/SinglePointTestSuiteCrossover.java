@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class SinglePointTestSuiteCrossover extends AbstractCrossoverOperator {
 
+    private static final long serialVersionUID = -4328518198377676869L;
+	
     private static final Logger logger = LogManager.getLogger(SinglePointTestSuiteCrossover.class.getName());
 
     public SinglePointTestSuiteCrossover(double crossoverProbability) {

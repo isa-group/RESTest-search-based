@@ -6,6 +6,8 @@ import java.util.List;
 
 public class AllMutationOperators extends AbstractMutationOperator {
 
+	private static final long serialVersionUID = 6709288711317038991L;
+	
 	List<? extends AbstractMutationOperator> operators;
 	
 	public AllMutationOperators(List<? extends AbstractMutationOperator> operators) {

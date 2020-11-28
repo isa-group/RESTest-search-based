@@ -12,6 +12,7 @@ import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.util.RESTestException;
 import org.javatuples.Pair;
 import org.uma.jmetal.operator.MutationOperator;
+import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.Collection;
@@ -26,9 +27,15 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractMutationOperator implements MutationOperator<RestfulAPITestSuiteSolution> {
 
+    private static final long serialVersionUID = 5006517730667680520L;
+	
     private double mutationProbability;
     private PseudoRandomGenerator randomGenerator;
 
+    public AbstractMutationOperator(double mutationProbability) {
+    	this(mutationProbability,JMetalRandom.getInstance().getRandomGenerator());
+    }
+    
     public AbstractMutationOperator(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         this.mutationProbability = mutationProbability;
         this.randomGenerator = randomGenerator;

@@ -6,8 +6,10 @@ package es.us.isa.restest.searchbased;
 import com.google.common.collect.Lists;
 import es.us.isa.restest.configuration.TestConfigurationIO;
 import es.us.isa.restest.configuration.pojos.TestConfigurationObject;
+import es.us.isa.restest.runners.RESTestRunner;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.algorithms.NSGAII;
+import es.us.isa.restest.searchbased.experiment.ExperimentalConfiguration;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
 import es.us.isa.restest.searchbased.operators.*;
 import es.us.isa.restest.searchbased.reporting.ExperimentReport;
@@ -109,6 +111,13 @@ public class SearchBasedTestSuiteGenerator {
                 .setIndependentRuns(1);
 
     }
+    
+    /*public SearchBasedTestSuiteGenerator(ExperimentalConfiguration config, RESTestRunner runner) {
+    	this(config.getExperimentName(),config.getTargetDir(),config.getSeed(),
+    				config.generateProblem(),
+    				config.getPopulationSize(),
+    				config.getM);    	
+    }*/
 
     
     public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, int maxEvaluations, RestfulAPITestSuiteGenerationProblem problem){
@@ -225,8 +234,8 @@ public class SearchBasedTestSuiteGenerator {
         															.setIndependentRuns(independentRuns)
         															.setNumberOfCores(numberOfCores)
         															.build();
-        JMetalLogger.logger.info("Generating testSuites for: " + problems.size() + " API(s) using as objectives :"+ problem.getObjectiveFunctions() );
-    	JMetalLogger.logger.info("Up to "+algorithms.size()+" algorithm run(s) will be executed using " + numberOfCores + " processor core(s)");
+        JMetalLogger.logger.info("Generating testSuites for: " + problems.size() + " API(s)" );
+    	JMetalLogger.logger.info("Up to "+algorithms.size()+" run(s) will be executed using " + numberOfCores + " processor core(s)");
         ExecuteAlgorithms executeAlgorithms = new ExecuteAlgorithms<>(experiment);
         long start=System.currentTimeMillis();
         executeAlgorithms.run();

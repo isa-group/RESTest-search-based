@@ -10,6 +10,7 @@ import es.us.isa.restest.specification.ParameterFeatures;
 import es.us.isa.restest.testcases.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.checkerframework.checker.units.qual.m;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.ArrayList;
@@ -27,6 +28,8 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RemoveParameterMutation.class.getName());
 
+    public RemoveParameterMutation(double mutationProbability) {super(mutationProbability);}
+    
     public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
     	super(mutationProbability,randomGenerator);
 	}
