@@ -150,8 +150,11 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
         }
         if(!optimizationConstraints.isEmpty()) {
         	logger.info("Evaluating solution constraints...");
+        	i = 0;
         	for(OptimizationConstraint constraint:optimizationConstraints) {
-        		    	}
+        		s.setConstraint(i, constraint.evaluate(s));
+        		i++;
+        	}
         }
         updateReportIndexes();
     }
