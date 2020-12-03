@@ -9,12 +9,12 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResponseCodesObtained implements TerminationCriterion {
+public class ResponseCodesObtained extends AbstractTerminationCriterion {
 
-	private static final Logger logger = LogManager.getLogger(ResponseCodesObtained.class.getName());
 	private List<Integer> requiredResponseCodes=null;
 
 	public ResponseCodesObtained(List<Integer> codes) {
+		super();
 		this.requiredResponseCodes=new ArrayList<>(codes);
 	}
 	

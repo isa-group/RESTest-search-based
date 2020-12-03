@@ -8,6 +8,7 @@ import io.qameta.allure.junit4.DisplayName;
 import org.junit.Test;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ParameterRemovalMutationTest extends AbstractSearchBasedTest {
@@ -25,42 +26,39 @@ public class ParameterRemovalMutationTest extends AbstractSearchBasedTest {
 			RestfulAPITestSuiteSolution result=operator.execute(solution.copy());
 		
 			// Assert: There is no changes due to the mutation:
-			result.equals(expectedResult);
+			assertEquals(result, expectedResult);
 		}
 	}
 	
 	@Test
-	@DisplayName("With a mutation probability of 1 all the test cases have less parameters (or are empty)")
+	@DisplayName("With a mutation probability of 1 one test case has one less parameter")
 	public void executeWithFullProbabilityTest() {
 		for(RestfulAPITestSuiteGenerationProblem problem:createTestProblems()) {
 			// Arrangement / Fixture		
 			RestfulAPITestSuiteSolution solution= problem.createSolution();		 
 		
-			RemoveParameterMutation operator=new  RemoveParameterMutation(1.0, JMetalRandom.getInstance().getRandomGenerator(),true);
+			RemoveParameterMutation operator=new  RemoveParameterMutation(1.0, JMetalRandom.getInstance().getRandomGenerator());
 		
 			// Act (SUT invocation)		
 			RestfulAPITestSuiteSolution result=operator.execute(solution.copy());
-		
-			// Assert: There are additional parameters on each testcase (or they are not modified if they have all the parameters)
+
+			// Assert: There is one less parameter on one testcase
 			TestCase originalTestCase;
 			TestCase mutatedTestCase;
+			int totalParams = 0;
+			int totalParamsAfterMutation = 0;
 			for(int i=0;i<result.getVariables().size();i++) {
 				originalTestCase=solution.getVariable(i);
 				mutatedTestCase=result.getVariable(i);
-				// 	Path parameters:
-				assertTrue(originalTestCase.getPathParameters().entrySet().containsAll(mutatedTestCase.getPathParameters().entrySet()));
-				assertTrue(mutatedTestCase.getPathParameters().entrySet().size()<originalTestCase.getPathParameters().entrySet().size() 
-						|| originalTestCase.getPathParameters().size()==0);
+				totalParams += originalTestCase.getQueryParameters().entrySet().size();
+				totalParamsAfterMutation += mutatedTestCase.getQueryParameters().entrySet().size();
 				// Query parameters:
 				assertTrue(originalTestCase.getQueryParameters().entrySet().containsAll(mutatedTestCase.getQueryParameters().entrySet()));
-				assertTrue(mutatedTestCase.getQueryParameters().entrySet().size()<originalTestCase.getQueryParameters().entrySet().size() 
-						|| originalTestCase.getQueryParameters().size()==0);
-				// Header parameters:
-				assertTrue(originalTestCase.getHeaderParameters().entrySet().containsAll(mutatedTestCase.getHeaderParameters().entrySet()));
-				assertTrue(mutatedTestCase.getHeaderParameters().entrySet().size()<originalTestCase.getHeaderParameters().entrySet().size() 
-						|| originalTestCase.getHeaderParameters().size()==0);
-				// TODO: Body parameters testing.
+				assertTrue(mutatedTestCase.getQueryParameters().entrySet().size()<=originalTestCase.getQueryParameters().entrySet().size());
+
+				// TODO: Header, formData and body parameters (BikeWise have none)
 			}
+			assertEquals(totalParams, totalParamsAfterMutation+1);
 		}
 	}
 }

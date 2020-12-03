@@ -14,7 +14,7 @@ import es.us.isa.restest.testcases.TestCase;
  */
 public class BalanceOfValidTestsRatio extends RestfulAPITestingObjectiveFunction {	
 
-	public static final double DEFAULT_TARGET_RATIO = 0.8;
+	public static final double DEFAULT_TARGET_RATIO = 0.9;
 	
 	private double targetRatio;
 	
@@ -23,29 +23,26 @@ public class BalanceOfValidTestsRatio extends RestfulAPITestingObjectiveFunction
 	}		
 	
 	public BalanceOfValidTestsRatio (double targetRatio) {
-		super(ObjectiveFunctionType.MAXIMIZATION,false,true);
+		super(ObjectiveFunctionType.MINIMIZATION,false,true);
 		this.targetRatio=targetRatio;
 	}
 	
     @Override
     public Double evaluate(RestfulAPITestSuiteSolution solution) {
-        double validTestCases=0.0;
-        double invalidTestCases=0.0;
-        for(TestCase testCase:solution.getVariables()){
-            if(testCase.getFaulty())
-                invalidTestCases++;
-            else
-                validTestCases++;
-        }
-        if(invalidTestCases==0)
-            return 1.0;
-        else
-            return Math.abs(targetRatio-(double)(validTestCases/invalidTestCases));
+        double validTestCases = solution.getVariables().stream().filter(tc -> !tc.getFaulty()).count();
+
+        double ratio = Math.abs(targetRatio - (validTestCases/solution.getNumberOfVariables()));
+		saveFitnessValue(ratio);
+        logEvaluation(ratio);
+        return ratio;
     }
 
 	public double getTargetRatio() {
 		return targetRatio;
 	}
-	
+
+	public String toString() {
+		return getClass().getSimpleName() + " - " + targetRatio;
+	}
     
 }

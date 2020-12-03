@@ -77,9 +77,9 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <aspectj.version>1.9.5</aspectj.version>
-        <jmetal.version>5.9</jmetal.version>
+        <jmetal.version>5.10</jmetal.version>
         <swagger.version>2.1.2</swagger.version>
-        <openapivalidator.version>2.10.0</openapivalidator.version>
+        <openapivalidator.version>2.11.0</openapivalidator.version>
         <restassured.version>4.2.0</restassured.version>
         <jackson.version>2.11.0</jackson.version>
         <allure.version>2.13.3</allure.version>
@@ -167,7 +167,7 @@
 
         <dependency>
             <groupId>org.uma.jmetal</groupId>
-            <artifactId>jmetal-exec</artifactId>
+            <artifactId>jmetal-lab</artifactId>
             <version>${jmetal.version}</version>
         </dependency>
 
@@ -323,6 +323,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>make-assembly</id>

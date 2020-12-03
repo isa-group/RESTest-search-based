@@ -65,6 +65,7 @@ public class RestAssuredExecutor {
             response.then();
 
         // Assert response and update counters
+        String failReason = "none";
         if (testCase.getEnableOracles()) {
             NominalOrFaultyTestCaseFilter nominalFaultyFilter = new NominalOrFaultyTestCaseFilter(testCase.getFaulty(), testCase.getFulfillsDependencies(), testCase.getFaultyReason());
             try {
@@ -76,14 +77,19 @@ public class RestAssuredExecutor {
             } catch (RuntimeException ex) {
                 failedTests++;
                 lastTestPassed = false;
+                if (ex instanceof ResponseValidationFilter.OpenApiValidationException)
+                    failReason = "Swagger validation";
+                else
+                    failReason = ex.getMessage();
             }
         } else {
             lastTestPassed = null;
+            failReason = null;
         }
 
         totalTests++;
 
-        return new TestResult(testCase.getId(), Integer.toString(response.getStatusCode()), response.getBody().asString(), response.getContentType(), lastTestPassed);
+        return new TestResult(testCase.getId(), Integer.toString(response.getStatusCode()), response.getBody().asString(), response.getContentType(), lastTestPassed, failReason);
     }
 
     public int getTotalTests() {

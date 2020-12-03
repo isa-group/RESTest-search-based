@@ -10,6 +10,7 @@ import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ParameterAdditionMutationTest extends AbstractSearchBasedTest {
@@ -28,12 +29,12 @@ public class ParameterAdditionMutationTest extends AbstractSearchBasedTest {
 			RestfulAPITestSuiteSolution result=operator.execute(solution.copy());
 		
 			// Assert: There is no changes due to the mutation:
-			result.equals(expectedResult);
+			assertEquals(result, expectedResult);
 		}
 	}
 	
 	@Test
-	@DisplayName("With a mutation probability of 1 all the test cases have additional parameters (or are full)")
+	@DisplayName("With a mutation probability of 1 only one test has one additional parameter")
 	public void executeWithFullProbabilityTest() {
 	
 		List<RestfulAPITestSuiteGenerationProblem> problems=createTestProblems();		
@@ -45,23 +46,24 @@ public class ParameterAdditionMutationTest extends AbstractSearchBasedTest {
 			// Act (SUT invocation)		
 			RestfulAPITestSuiteSolution result=operator.execute(solution.copy());
 		
-			// Assert: There are additional parameters on each testcase (or they are not modified if they have all the parameters)
+			// Assert: There is one additional parameters on one testcase
 			TestCase originalTestCase;
 			TestCase mutatedTestCase;
+			int totalParams = 0;
+			int totalParamsAfterMutation = 0;
 			for(int i=0;i<result.getVariables().size();i++) {
 				originalTestCase=solution.getVariable(i);
 				mutatedTestCase=result.getVariable(i);
-				// Path parameters:
-				assertTrue(mutatedTestCase.getPathParameters().keySet().containsAll(originalTestCase.getPathParameters().keySet()));
-				assertTrue(mutatedTestCase.getPathParameters().entrySet().size()>=originalTestCase.getPathParameters().entrySet().size());
+				totalParams += originalTestCase.getQueryParameters().entrySet().size();
+				totalParamsAfterMutation += mutatedTestCase.getQueryParameters().entrySet().size();
 				// Query parameters:
 				assertTrue(mutatedTestCase.getQueryParameters().entrySet().containsAll(originalTestCase.getQueryParameters().entrySet()));
-				assertTrue(mutatedTestCase.getQueryParameters().entrySet().size()>=originalTestCase.getQueryParameters().entrySet().size());
-				// Header parameters:
-				assertTrue(mutatedTestCase.getHeaderParameters().entrySet().containsAll(originalTestCase.getHeaderParameters().entrySet()));
-				assertTrue(mutatedTestCase.getHeaderParameters().entrySet().size()>=originalTestCase.getHeaderParameters().entrySet().size());
-				// TODO: Body parameters testing.
-		}
+				assertTrue(mutatedTestCase.getQueryParameters().entrySet().size()<=originalTestCase.getQueryParameters().entrySet().size()+1);
+
+				// TODO: Header, formData and body parameters (BikeWise have none)
+			}
+
+			assertEquals(totalParams+1, totalParamsAfterMutation);
 		}
 	}
 }

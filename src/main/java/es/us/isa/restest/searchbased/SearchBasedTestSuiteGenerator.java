@@ -6,39 +6,42 @@ package es.us.isa.restest.searchbased;
 import com.google.common.collect.Lists;
 import es.us.isa.restest.configuration.TestConfigurationIO;
 import es.us.isa.restest.configuration.pojos.TestConfigurationObject;
-import es.us.isa.restest.runners.RESTestRunner;
 import es.us.isa.restest.runners.SearchBasedRunner;
 import es.us.isa.restest.searchbased.algorithms.NSGAII;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
 import es.us.isa.restest.searchbased.operators.*;
+import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.util.CURLCommandGenerator;
+import es.us.isa.restest.util.SolutionUtils;
 import es.us.isa.restest.util.Timer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.operator.SelectionOperator;
-import org.uma.jmetal.operator.impl.selection.BinaryTournamentSelection;
+import org.uma.jmetal.operator.selection.SelectionOperator;
+import org.uma.jmetal.operator.selection.impl.BinaryTournamentSelection;
 import org.uma.jmetal.qualityindicator.impl.*;
-import org.uma.jmetal.qualityindicator.impl.hypervolume.PISAHypervolume;
-import org.uma.jmetal.util.AlgorithmRunner;
+import org.uma.jmetal.qualityindicator.impl.hypervolume.impl.PISAHypervolume;
+import org.uma.jmetal.util.AbstractAlgorithmRunner;
 import org.uma.jmetal.util.JMetalLogger;
 import org.uma.jmetal.util.comparator.RankingAndCrowdingDistanceComparator;
 import org.uma.jmetal.util.evaluator.SolutionListEvaluator;
 import org.uma.jmetal.util.evaluator.impl.SequentialSolutionListEvaluator;
-import org.uma.jmetal.util.experiment.Experiment;
-import org.uma.jmetal.util.experiment.ExperimentBuilder;
-import org.uma.jmetal.util.experiment.component.*;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentProblem;
+import org.uma.jmetal.lab.experiment.Experiment;
+import org.uma.jmetal.lab.experiment.ExperimentBuilder;
+import org.uma.jmetal.lab.experiment.component.*;
+import org.uma.jmetal.lab.experiment.component.impl.*;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import org.uma.jmetal.util.pseudorandom.impl.MersenneTwisterGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static es.us.isa.restest.util.Timer.TestStep.TEST_SUITE_GENERATION;
@@ -59,34 +62,37 @@ public class SearchBasedTestSuiteGenerator {
     private final List<ExperimentProblem<RestfulAPITestSuiteSolution>> problems;
     List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms;
     ExperimentBuilder<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>> experimentBuilder;
+
+    private RestfulAPITestSuiteSolution bestSolution;
     
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions, String targetPath, long seed, int populationSize,TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(spec, configFilePath, experimentName, objectiveFunctions,targetPath, seed,null,populationSize,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions, String targetPath, long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner, ExperimentReport experimentReport) {
+    	this(spec, configFilePath, experimentName, objectiveFunctions,targetPath, seed,null,populationSize, mutationProbabilities, crossoverProbability,tc, runner, experimentReport);
     }
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer fixedTestSuiteSize, int populationSize,TerminationCriterion tc, SearchBasedRunner runner) {
-        this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,fixedTestSuiteSize),populationSize,tc, runner);
-    }
-    
-    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer minTestSuiteSize,Integer maxTestSuiteSize, int populationSize,TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,minTestSuiteSize,maxTestSuiteSize),populationSize,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer fixedTestSuiteSize, int populationSize, double[] mutationProbabilities, double crossoverProbability,TerminationCriterion tc, SearchBasedRunner runner, ExperimentReport experimentReport) {
+        this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,fixedTestSuiteSize),populationSize, mutationProbabilities, crossoverProbability,tc, runner, experimentReport);
     }
     
-    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, RestfulAPITestSuiteGenerationProblem problem, int populationSize,TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,Lists.newArrayList(problem),populationSize,tc, runner);
+    public SearchBasedTestSuiteGenerator(OpenAPISpecification spec, String configFilePath, String experimentName, List<RestfulAPITestingObjectiveFunction> objectiveFunctions,String targetPath, long seed, Integer minTestSuiteSize,Integer maxTestSuiteSize, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner, ExperimentReport experimentReport) {
+    	this(experimentName,targetPath,seed,buildProblem(spec, configFilePath, objectiveFunctions, targetPath,minTestSuiteSize,maxTestSuiteSize),populationSize, mutationProbabilities, crossoverProbability,tc, runner, experimentReport);
     }
     
-    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems, int populationSize,TerminationCriterion tc, SearchBasedRunner runner) {
-    	this(experimentName,targetPath,seed,myproblems,configureDefaultAlgorithms(seed,populationSize,myproblems,tc), runner);
+    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, RestfulAPITestSuiteGenerationProblem problem, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner, ExperimentReport experimentReport) {
+    	this(experimentName,targetPath,seed,Lists.newArrayList(problem),populationSize, mutationProbabilities, crossoverProbability,tc, runner, experimentReport);
+    }
+    
+    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems, int populationSize, double[] mutationProbabilities, double crossoverProbability, TerminationCriterion tc, SearchBasedRunner runner, ExperimentReport experimentReport) {
+    	this(experimentName,targetPath,seed,myproblems,configureDefaultAlgorithms(seed,populationSize, mutationProbabilities, crossoverProbability,myproblems,tc), runner, experimentReport);
         this.tc=tc;
     	setPopulationSize(populationSize);
     }
     
-    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems,List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms, SearchBasedRunner runner) {
+    public SearchBasedTestSuiteGenerator(String experimentName, String targetPath, long seed, List<RestfulAPITestSuiteGenerationProblem> myproblems,List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms, SearchBasedRunner runner, ExperimentReport experimentReport) {
     	logger.info("Creating search-based experiment");
     	this.restestRunner = runner;
         this.seed=seed;
         JMetalRandom.getInstance().setSeed(seed);
         this.problem=myproblems.get(0);
+        this.problem.setExperimentReport(experimentReport);
         this.problems = new ArrayList<>();
         for(RestfulAPITestSuiteGenerationProblem p:myproblems)
         	this.problems.add(new ExperimentProblem<>(p));        
@@ -106,28 +112,24 @@ public class SearchBasedTestSuiteGenerator {
     }
 
     
-    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, int maxEvaluations, RestfulAPITestSuiteGenerationProblem problem){
-    	Algorithm<List<RestfulAPITestSuiteSolution>> result=createDefaultAlgorithm(seed, populationSize, problem,new MaxEvaluations(maxEvaluations));
+    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, int maxEvaluations, RestfulAPITestSuiteGenerationProblem problem){
+    	Algorithm<List<RestfulAPITestSuiteSolution>> result=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbability, problem,new MaxEvaluations(maxEvaluations));
     	return result;
     }
     
     
-    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, RestfulAPITestSuiteGenerationProblem problem,TerminationCriterion tc){
+    public static Algorithm<List<RestfulAPITestSuiteSolution>> createDefaultAlgorithm(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, RestfulAPITestSuiteGenerationProblem problem,TerminationCriterion tc){
     	MersenneTwisterGenerator generator=new MersenneTwisterGenerator(seed);
     	Algorithm<List<RestfulAPITestSuiteSolution>> result=null;
     	AllMutationOperators mutation=new AllMutationOperators(Lists.newArrayList(
-        		new AddTestCaseMutation(0.1,generator),
-        		new RemoveTestCaseMutation(0.1,generator),
-                new ReplaceTestCaseMutation(0.1,generator),
-    			new AddParameterMutation(0.01,generator),
-        		new RemoveParameterMutation(0.01,generator),
-        		new RandomParameterValueMutation(0.01,generator),
-        		new ResourceChangeMutation(0.01,generator)
+        		new AddTestCaseMutation(mutationProbabilities[0],generator),
+        		new RemoveTestCaseMutation(mutationProbabilities[1],generator),
+                new ReplaceTestCaseMutation(mutationProbabilities[2],generator),
+    			new AddParameterMutation(mutationProbabilities[3],generator),
+        		new RemoveParameterMutation(mutationProbabilities[4],generator),
+        		new RandomParameterValueMutation(mutationProbabilities[5],generator)
         ));
-    	AllCrossoverOperators crossover=new AllCrossoverOperators(Lists.newArrayList(
-    	        new UniformTestCaseCrossover(0.01),
-                new SinglePointTestSuiteCrossover(0.1)
-        ));
+        SinglePointTestSuiteCrossover crossover=new SinglePointTestSuiteCrossover(crossoverProbability);
     	
     	 SelectionOperator<List<RestfulAPITestSuiteSolution>, RestfulAPITestSuiteSolution> selectionOperator= 
     			 new BinaryTournamentSelection<RestfulAPITestSuiteSolution>(new RankingAndCrowdingDistanceComparator<RestfulAPITestSuiteSolution>()) ;;
@@ -142,14 +144,14 @@ public class SearchBasedTestSuiteGenerator {
     	return result;
     }
     
-    private static List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> configureDefaultAlgorithms(long seed, int populationSize,List<RestfulAPITestSuiteGenerationProblem> myproblems,TerminationCriterion tc) {        	 
+    private static List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> configureDefaultAlgorithms(long seed, int populationSize, double[] mutationProbabilities, double crossoverProbability, List<RestfulAPITestSuiteGenerationProblem> myproblems,TerminationCriterion tc) {
     	List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> result = new ArrayList<>();
         Algorithm<List<RestfulAPITestSuiteSolution>> algorithm = null; 
         
         ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>> expAlg=null;
         int runId=0;
         for (RestfulAPITestSuiteGenerationProblem problem : myproblems) {            
-        	algorithm=createDefaultAlgorithm(seed, populationSize,problem,tc);
+        	algorithm=createDefaultAlgorithm(seed, populationSize, mutationProbabilities, crossoverProbability, problem,tc);
             expAlg=new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(algorithm, new ExperimentProblem<>(problem), runId);           
             result.add(expAlg);
             runId++;
@@ -167,14 +169,14 @@ public class SearchBasedTestSuiteGenerator {
         return new RestfulAPITestSuiteGenerationProblem(spec, configuration, objFuncs, JMetalRandom.getInstance().getRandomGenerator(),fixedTestSuiteSize);
     }
 
-    public void run() throws IOException {
+    public List<RestfulAPITestSuiteSolution> run() throws IOException {
     	JMetalLogger.logger.info("Generating testSuites for: " + problem.getName() + " using as objectives :"+ problem.getObjectiveFunctions() );
     	JMetalLogger.logger.info("Starting the execution of: " + algorithms.get(0).getAlgorithm().getClass().getSimpleName());
         Timer.startCounting(TEST_SUITE_GENERATION);
-    	 AlgorithmRunner algorithmRunner = new AlgorithmRunner.Executor((Algorithm<?>) algorithms.get(0).getAlgorithm())
-    		        .execute() ;
+        long start=System.currentTimeMillis();
+        algorithms.get(0).getAlgorithm().run();        
         Timer.stopCounting(TEST_SUITE_GENERATION);
-    	 long computingTime = algorithmRunner.getComputingTime() ;
+    	 long computingTime = System.currentTimeMillis()-start ;
 
     	 List<RestfulAPITestSuiteSolution> suites=algorithms.get(0).getAlgorithm().getResult();
 
@@ -183,7 +185,7 @@ public class SearchBasedTestSuiteGenerator {
     	 JMetalLogger.logger.info("Objectives values have been written to file FUN.tsv");
     	 JMetalLogger.logger.info("Variables values have been written to file VAR.tsv");
     	 int index=1;
-         RestfulAPITestSuiteSolution bestSolution = suites.get(0);
+         bestSolution = suites.get(0);
     	 for(RestfulAPITestSuiteSolution suite:suites) {
     		 JMetalLogger.logger.info("TestSuite "+index);
     		 for(int i=0;i<suite.getNumberOfObjectives();i++) {
@@ -196,12 +198,26 @@ public class SearchBasedTestSuiteGenerator {
     		 }
     		 index++;
     		 // Update best solution according to best value of preferred objective function (first one in the array):
-             if (suite.getObjective(0) < bestSolution.getObjective(0))
+             if (suite.getObjective(0) < bestSolution.getObjective(0)
+                     ||
+                     (suite.getObjective(0) == bestSolution.getObjective(0)
+                            &&
+                     problem.getObjectiveFunctions().size() > 1
+                            &&
+                     suite.getObjective(1) < bestSolution.getObjective(1)))
                  bestSolution = suite;
     	 }
 
-    	 // Execute best test suite with RESTestRunner
+        // Execute best test suite with RESTestRunner
+        if (!bestSolution.getVariables().get(0).getEnableOracles()) {
+            for (TestCase testCase : bestSolution.getVariables()) {
+                testCase.setEnableOracles(true);
+                SolutionUtils.updateTestCaseFaultyReason(bestSolution, testCase);
+            }
+        }
+        logger.info("Executing best test suite with oracles enabled...");
         restestRunner.run(bestSolution.getVariables());
+        return suites;
     }
 
 	public void runExperiment(int independentRuns, int numberOfCores) throws IOException {
@@ -299,5 +315,20 @@ public class SearchBasedTestSuiteGenerator {
     public List<ExperimentProblem<RestfulAPITestSuiteSolution>> getProblems() {
 		return problems;
 	}
+
+	public RestfulAPITestSuiteGenerationProblem getProblem() {
+        return problem;
+    }
+
+    public RestfulAPITestSuiteSolution getBestSolution() {
+        return bestSolution;
+    }      
     
+    public SearchBasedRunner getRestestRunner() {
+		return restestRunner;
+	}
+    
+    public void setRestestRunner(SearchBasedRunner restestRunner) {
+		this.restestRunner = restestRunner;
+	}
 }

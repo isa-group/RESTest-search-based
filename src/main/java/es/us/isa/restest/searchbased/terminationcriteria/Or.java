@@ -2,11 +2,12 @@ package es.us.isa.restest.searchbased.terminationcriteria;
 
 import es.us.isa.restest.searchbased.algorithms.SearchBasedAlgorithm;
 
-public class Or implements TerminationCriterion {
+public class Or extends AbstractTerminationCriterion {
 
 	TerminationCriterion clause1,clause2;
 	
 	public Or(TerminationCriterion clause1,TerminationCriterion clause2) {
+		super();
 		this.clause1=clause1;
 		this.clause2=clause2;
 	}

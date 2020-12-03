@@ -12,10 +12,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
-import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
+import static es.us.isa.restest.util.SolutionUtils.resetTestResult;
+import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
 
 /**
  *
@@ -25,38 +27,29 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RemoveParameterMutation.class.getName());
 
-	boolean removePathParameters;
-	boolean removeSecurityParameters;
-	
     public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
-        this(mutationProbability, randomGenerator,false,false);
-    }
-    
-    public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator, boolean removePathParameters) {
-		this(mutationProbability,randomGenerator,removePathParameters,false);
-    }
-    
-    public RemoveParameterMutation(double mutationProbability, PseudoRandomGenerator randomGenerator, boolean removePathParameters,boolean removeSecurityParameters) {
     	super(mutationProbability,randomGenerator);
-		this.removePathParameters=removePathParameters;
-		this.removeSecurityParameters=removeSecurityParameters;
 	}
 
 	@Override
     protected void doMutation(double mutationProbability, RestfulAPITestSuiteSolution solution) {
-        for (TestCase testCase : solution.getVariables()) {
-            mutationApplied = false;
-            for (ParameterFeatures param : getAllPresentParameters(testCase)) {
-                if (getRandomGenerator().nextDouble() <= mutationProbability) {
-                    doMutation(param, testCase);
-                    if (!mutationApplied) mutationApplied = true;
-                }
-            }
+        if (getRandomGenerator().nextDouble() <= mutationProbability) {
+            List<TestCase> testCases = new ArrayList<>(solution.getVariables());
+            Collections.shuffle(testCases);
 
-            if (mutationApplied) {
-                logger.info("Mutation probability fulfilled! Parameter removed from test case.");
-                updateTestCaseFaultyReason(solution, testCase);
-                resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+            for (TestCase testCase : testCases) {
+                List<ParameterFeatures> presentParams = new ArrayList<>(getNonAuthParameters(getAllPresentParameters(testCase), testCase, solution));
+                Collections.shuffle(presentParams);
+
+                if (!presentParams.isEmpty()) {
+                    ParameterFeatures paramToChange = presentParams.get(0);
+                    doMutation(paramToChange, testCase);
+
+                    logger.info("Mutation probability fulfilled! Parameter removed from test case.");
+                    updateTestCaseFaultyReason(solution, testCase);
+                    resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                    break;
+                }
             }
         }
     }
@@ -64,10 +57,5 @@ public class RemoveParameterMutation extends AbstractMutationOperator {
     private void doMutation(ParameterFeatures param, TestCase testCase) {
         testCase.removeParameter(param);
     }
-    
-    @Override
-    protected Collection<ParameterFeatures> getAllPresentParameters(TestCase testCase) {
-    	return getAllPresentParameters(testCase, removePathParameters,removeSecurityParameters);
-    }
-    
+
 }

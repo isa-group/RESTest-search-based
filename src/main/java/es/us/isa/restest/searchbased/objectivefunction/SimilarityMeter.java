@@ -46,6 +46,10 @@ public class SimilarityMeter {
         }
     }
 
+    public METRIC getSimilarityMetric() {
+        return similarityMetric;
+    }
+
     public enum METRIC {
         JACCARD,
         JARO_WINKLER,

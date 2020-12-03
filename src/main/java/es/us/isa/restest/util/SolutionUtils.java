@@ -1,25 +1,26 @@
-package es.us.isa.restest.searchbased.operators;
+package es.us.isa.restest.util;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.util.OASAPIValidator;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.util.List;
 
 import static es.us.isa.restest.testcases.TestCase.checkFulfillsDependencies;
-import static es.us.isa.restest.testcases.TestCase.getFaultyReasons;
 
 /**
  * This class contains common utilities to all mutation operators
  */
-public class Utils {
+public class SolutionUtils {
 
-    static void updateTestCaseFaultyReason(RestfulAPITestSuiteSolution solution, TestCase testCase) {
+    public static void updateTestCaseFaultyReason(RestfulAPITestSuiteSolution solution, TestCase testCase) {
         if (testCase.getEnableOracles()) {
-            List<String> faultyReasons = getFaultyReasons(testCase, solution.getProblem().getTestCaseGenerators().get(testCase.getOperationId()).getValidator());
+            List<String> faultyReasons = testCase.getValidationErrors(OASAPIValidator.getValidator(solution.getProblem().getApiUnderTest()));
             if (!faultyReasons.isEmpty()) {
-                testCase.setFaultyReason(String.join(", ", faultyReasons));
+                testCase.setFaultyReason("individual_parameter_constraint according to OAS validator: " + StringEscapeUtils.escapeJava((String.join(" / ", faultyReasons))));
                 testCase.setFaulty(true);
-            } else if (checkFulfillsDependencies(testCase, solution.getProblem().getTestCaseGenerators().get(testCase.getOperationId()).getIdlReasoner())) {
+            } else if (!checkFulfillsDependencies(testCase, solution.getProblem().getTestCaseGenerators().get(testCase.getOperationId()).getIdlReasoner())) {
                 testCase.setFaultyReason("inter_parameter_dependency");
                 testCase.setFulfillsDependencies(false);
                 testCase.setFaulty(true);
@@ -31,7 +32,7 @@ public class Utils {
         }
     }
 
-    static void resetTestResult(String testCaseId, RestfulAPITestSuiteSolution solution) {
+    public static void resetTestResult(String testCaseId, RestfulAPITestSuiteSolution solution) {
         solution.setTestResult(testCaseId, null);
     }
 }

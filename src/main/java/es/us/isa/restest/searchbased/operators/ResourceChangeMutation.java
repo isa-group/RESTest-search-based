@@ -4,7 +4,7 @@ import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
-import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
+import static es.us.isa.restest.util.SolutionUtils.resetTestResult;
 
 public class ResourceChangeMutation extends AbstractMutationOperator {
 

@@ -5,19 +5,18 @@ package es.us.isa.restest.searchbased;
 
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
-import org.uma.jmetal.solution.impl.AbstractGenericSolution;
+import es.us.isa.restest.util.RESTestException;
+import org.uma.jmetal.solution.AbstractSolution;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCase,RestfulAPITestSuiteGenerationProblem>{
+public class RestfulAPITestSuiteSolution extends AbstractSolution<TestCase>{
 
     private Map<String,TestResult> testResults; // key = testCaseId
+    RestfulAPITestSuiteGenerationProblem problem; 
     
-    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem) {
+    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem) throws RESTestException {
         this(problem, false);
     }
 
@@ -28,14 +27,15 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
      * @param problem Problem to solve
      * @param withoutTestCases true if no test cases need to be added to the solution
      */
-    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem, boolean withoutTestCases) {
-        super(problem);
+    public RestfulAPITestSuiteSolution(RestfulAPITestSuiteGenerationProblem problem, boolean withoutTestCases) throws RESTestException {
+    	super(problem.getMaxTestSuiteSize(),problem.getObjectiveFunctions().size(),problem.getOptimizationConstraints().size());
+        this.problem=problem;
         this.testResults=new HashMap<>();
         if (!withoutTestCases)
             createVariables();
     }
 
-    @Override
+    
     public String getVariableValueString(int i) {
     	if(i<getVariables().size())
     		return getVariable(i).toString();
@@ -46,8 +46,13 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
 
     @Override
     public RestfulAPITestSuiteSolution copy() {
-    	RestfulAPITestSuiteSolution result=new RestfulAPITestSuiteSolution(this.problem, true);
-    	TestCase testCase=null;
+        RestfulAPITestSuiteSolution result= null;
+        try {
+            result = new RestfulAPITestSuiteSolution(this.problem, true);
+        } catch (RESTestException e) { // This should never happen, since createVariables() method won't be called
+            e.printStackTrace();
+        }
+        TestCase testCase=null;
     	for(int i=0;i<this.getNumberOfVariables();i++) {
     		testCase=this.getVariable(i);
     		result.setVariable(i, copyTestCase(testCase));
@@ -125,18 +130,23 @@ public class RestfulAPITestSuiteSolution extends AbstractGenericSolution<TestCas
         return testResults.values();
     }
 
-    public void createVariables() {
+    public void createVariables() throws RESTestException {
     	int nVariables=computeTestSuiteSize();
         for(int i=0;i<nVariables;i++) {
             this.setVariable(i, problem.createRandomTestCase());
         }
-        for(int i=nVariables;i<problem.getNumberOfVariables();i++) {
+        for(int i=nVariables;i<problem.getMaxTestSuiteSize();i++) {
         	this.getVariables().remove(this.getVariables().size()-1);
         }
     }
+
+    public void setVariables(List<TestCase> testCases) {
+        getVariables().clear();
+        getVariables().addAll(testCases);
+    }
     
     private int computeTestSuiteSize() {
-    	int result=problem.getNumberOfVariables();
+    	int result=problem.getMaxTestSuiteSize();
     	if(problem.getFixedTestSuiteSize()!=null)
     		return problem.getFixedTestSuiteSize();
     	else

@@ -14,10 +14,12 @@ import org.apache.logging.log4j.Logger;
 import org.javatuples.Pair;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import static es.us.isa.restest.searchbased.operators.Utils.resetTestResult;
-import static es.us.isa.restest.searchbased.operators.Utils.updateTestCaseFaultyReason;
+import static es.us.isa.restest.util.SolutionUtils.resetTestResult;
+import static es.us.isa.restest.util.SolutionUtils.updateTestCaseFaultyReason;
 
 /**
  *
@@ -31,33 +33,29 @@ public class RandomParameterValueMutation extends AbstractMutationOperator {
 
     private static final Logger logger = LogManager.getLogger(RandomParameterValueMutation.class.getName());
 
-    private AddParameterMutation parameterAdditionOperator;
-
     public RandomParameterValueMutation(double mutationProbability, PseudoRandomGenerator randomGenerator) {
         super(mutationProbability, randomGenerator);
-        parameterAdditionOperator = new AddParameterMutation(mutationProbability, randomGenerator);
     }
 
     @Override
     protected void doMutation(double probability, RestfulAPITestSuiteSolution solution) {
-        for (TestCase testCase : solution.getVariables()) {
-            mutationApplied = false;
-            Collection<ParameterFeatures> parameters = getAllPresentParameters(testCase);
-            if (parameters.isEmpty()) {
-                parameterAdditionOperator.doMutation(probability, solution);
-            } else {
-                for (ParameterFeatures param : parameters) {
-                    if (getRandomGenerator().nextDouble() <= probability) {                        
-                        doMutation(param, testCase, solution);
-                        if (!mutationApplied) mutationApplied = true;
-                    }
-                }
-            }
+        if (getRandomGenerator().nextDouble() <= probability) {
+            List<TestCase> testCases = new ArrayList<>(solution.getVariables());
+            Collections.shuffle(testCases);
 
-            if (mutationApplied) {
-                logger.info("Mutation probability fulfilled! Parameter value changed in test case.");
-                updateTestCaseFaultyReason(solution, testCase);
-                resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+            for (TestCase testCase : testCases) {
+                List<ParameterFeatures> presentParams = new ArrayList<>(getNonAuthParameters(getAllPresentParameters(testCase, true), testCase, solution));
+                Collections.shuffle(presentParams);
+
+                if (!presentParams.isEmpty()) {
+                    ParameterFeatures paramToChange = presentParams.get(0);
+                    doMutation(paramToChange, testCase, solution);
+
+                    logger.info("Mutation probability fulfilled! Parameter value changed in test case.");
+                    updateTestCaseFaultyReason(solution, testCase);
+                    resetTestResult(testCase.getId(), solution); // The test case changed, reset test result
+                    break;
+                }
             }
         }
     }

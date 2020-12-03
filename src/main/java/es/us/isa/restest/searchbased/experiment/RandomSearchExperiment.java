@@ -10,7 +10,7 @@ import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.randomsearch.RandomSearch;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -36,6 +36,15 @@ public class RandomSearchExperiment {
 	    String method ="GET";
 	    int minTestSuiteSize=2;
 	    int maxTestSuiteSize=10;
+		double[] mutationProbabilities = {
+				0.1, // AddTestCaseMutation
+				0.1, // RemoveTestCaseMutation
+				0.1, // ReplaceTestCaseMutation
+				0.1, // AddParameterMutation
+				0.1, // RemoveParameterMutation
+				0.1  // RandomParameterValueMutation
+		};
+		double crossoverProbability = 0.1; // SinglePointTestSuiteCrossover
 	    List<RestfulAPITestingObjectiveFunction> objectiveFunctions= Arrays.asList(
 				new InputCoverage(),
 	    		new SuiteSize()
@@ -50,8 +59,11 @@ public class RandomSearchExperiment {
                 minTestSuiteSize,
                 maxTestSuiteSize,                
                 populationSize,
+				mutationProbabilities,
+				crossoverProbability,
                 new MaxEvaluations(maxEvaluations),
-				null);
+				null,
+                null);
 	    List<RestfulAPITestSuiteGenerationProblem> problems = Arrays.asList();
 	    List<ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>> algorithms = null;
 	    Algorithm<List<RestfulAPITestSuiteSolution>> randomSearch=new RandomSearch(generator.getProblems().get(0).getProblem(),maxEvaluations);

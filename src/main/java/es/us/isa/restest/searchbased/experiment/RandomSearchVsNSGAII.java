@@ -10,8 +10,8 @@ import es.us.isa.restest.searchbased.objectivefunction.SuiteSize;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentProblem;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,6 +34,15 @@ public class RandomSearchVsNSGAII {
     private String method ="GET";
     private int minTestSuiteSize=2;
     private int maxTestSuiteSize=10;
+	private double[] mutationProbabilities = {
+			0.1, // AddTestCaseMutation
+			0.1, // RemoveTestCaseMutation
+			0.1, // ReplaceTestCaseMutation
+			0.1, // AddParameterMutation
+			0.1, // RemoveParameterMutation
+			0.1  // RandomParameterValueMutation
+	};
+	private double crossoverProbability = 0.1; // SinglePointTestSuiteCrossover
 	
     
     List<RestfulAPITestSuiteGenerationProblem> problems = null;
@@ -53,7 +62,7 @@ public class RandomSearchVsNSGAII {
 		for(int runId=0;runId<independentRuns;runId++) {
 			for(RestfulAPITestSuiteGenerationProblem problem:problems) {
 				ep=new ExperimentProblem<>(problem);
-				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, maxEvaluations, problem.clone());
+				NSGAII=SearchBasedTestSuiteGenerator.createDefaultAlgorithm(seed,NSGAIIpopulationSize, mutationProbabilities, crossoverProbability, maxEvaluations, problem.clone());
 				randomSearch=new RandomSearch(problem.clone(),new MaxEvaluations(maxEvaluations));
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(NSGAII, "NSGAII", ep,runId ));			
 				algorithms.add(new ExperimentAlgorithm<RestfulAPITestSuiteSolution, List<RestfulAPITestSuiteSolution>>(randomSearch,"RandomSearch",ep,runId));			
@@ -71,7 +80,7 @@ public class RandomSearchVsNSGAII {
     public void run()
     {
     	String experimentName="RandomSearchVsNSGAII";
-    	SearchBasedTestSuiteGenerator generator=new SearchBasedTestSuiteGenerator(experimentName, targetDir, seed, problems,algorithms, null);
+    	SearchBasedTestSuiteGenerator generator=new SearchBasedTestSuiteGenerator(experimentName, targetDir, seed, problems,algorithms, null, null);
     	try {
 			generator.runExperiment(independentRuns,8);
 		} catch (IOException e) {			

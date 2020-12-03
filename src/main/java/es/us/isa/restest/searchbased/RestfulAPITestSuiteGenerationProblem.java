@@ -6,26 +6,34 @@ package es.us.isa.restest.searchbased;
 import es.us.isa.restest.configuration.pojos.Operation;
 import es.us.isa.restest.configuration.pojos.TestConfigurationObject;
 import es.us.isa.restest.generators.ConstraintBasedTestCaseGenerator;
+import es.us.isa.restest.searchbased.constraints.OptimizationConstraint;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction.ObjectiveFunctionType;
+import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
 import es.us.isa.restest.testcases.restassured.executors.RestAssuredExecutor;
+import es.us.isa.restest.util.RESTestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.uma.jmetal.problem.impl.AbstractGenericProblem;
+import org.uma.jmetal.problem.AbstractGenericProblem;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
 import org.uma.jmetal.util.pseudorandom.PseudoRandomGenerator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static es.us.isa.restest.util.PropertyManager.readProperty;
+
 public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem<RestfulAPITestSuiteSolution> {
 
     private static final Logger logger = LogManager.getLogger(RestfulAPITestSuiteGenerationProblem.class.getName());
+
+    private ExperimentReport experimentReport;
 
 	// TestSuiteSizeParameters :
 	// We support 3 suite size configuration mechanisms:
@@ -46,6 +54,7 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
 
     // Optimization problem configuration
     List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
+    List<OptimizationConstraint> optimizationConstraints;
     boolean requiresTestExecution;
     boolean requiresTestOracles;
     long testCasesExecuted;
@@ -61,11 +70,14 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
     		this.fixedTestSuiteSize=null;    		
     	}    	    	
     	this.maxTestSuiteSize=maxTestSuiteSize;
-    	this.minTestSuiteSize=minTestSuiteSize;
-    	
+    	this.minTestSuiteSize=minTestSuiteSize;    	
     }
     
     public RestfulAPITestSuiteGenerationProblem(OpenAPISpecification apiUnderTest, TestConfigurationObject configuration, List<RestfulAPITestingObjectiveFunction> objFuncs, PseudoRandomGenerator randomGenerator, Integer fixedTestSuiteSize) {
+    	this(apiUnderTest,configuration,objFuncs,new ArrayList<OptimizationConstraint>(),randomGenerator, fixedTestSuiteSize);
+    }
+    
+    public RestfulAPITestSuiteGenerationProblem(OpenAPISpecification apiUnderTest, TestConfigurationObject configuration, List<RestfulAPITestingObjectiveFunction> objFuncs, List<OptimizationConstraint> constraints, PseudoRandomGenerator randomGenerator, Integer fixedTestSuiteSize) {
     	this.apiUnderTest = apiUnderTest;
     	testCaseExecutor = new RestAssuredExecutor(apiUnderTest);
     	testCaseExecutor.setLogging(false);
@@ -100,6 +112,8 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
 
         setNumberOfObjectives(this.objectiveFunctions.size());
         setNumberOfVariables(computeDefaultTestSuiteSize());
+        this.optimizationConstraints=constraints;
+        setNumberOfConstraints(optimizationConstraints.size());
     }
     
     public RestfulAPITestSuiteGenerationProblem clone() {
@@ -134,11 +148,25 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
             				-objFunc.evaluate(s)); 	// Otherwise change sign
             i++;
         }
+        if(!optimizationConstraints.isEmpty()) {
+        	logger.info("Evaluating solution constraints...");
+        	i = 0;
+        	for(OptimizationConstraint constraint:optimizationConstraints) {
+        		s.setConstraint(i, constraint.evaluate(s));
+        		i++;
+        	}
+        }
+        updateReportIndexes();
     }
 
     @Override
     public RestfulAPITestSuiteSolution createSolution() {
-        return new RestfulAPITestSuiteSolution(this);
+        try {
+            return new RestfulAPITestSuiteSolution(this);
+        } catch (RESTestException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     public OpenAPISpecification getApiUnderTest() {
@@ -166,7 +194,7 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
         return results;
     }
 
-	public TestCase createRandomTestCase() {
+	public TestCase createRandomTestCase() throws RESTestException {
 		Operation operation = chooseRandomOperation();
 		String faulty = chooseRandomFaultyReason();
 		ConstraintBasedTestCaseGenerator testCaseGenerator = testCaseGenerators.get(operation.getOperationId());
@@ -236,7 +264,23 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
 	public long getTestCasesExecuted() {
 		return testCasesExecuted;		
 	}
-	
-	
+
+    public void setExperimentReport(ExperimentReport experimentReport) {
+        this.experimentReport = experimentReport;
+    }
     
+    public List<OptimizationConstraint> getOptimizationConstraints() {
+		return optimizationConstraints;
+	}
+    
+    @Override
+    public int getNumberOfConstraints() {
+      return optimizationConstraints.size();
+    }
+
+    public void updateReportIndexes() {
+        if (Boolean.parseBoolean(readProperty("search.stats.enabled")) && experimentReport != null) {
+            experimentReport.incrementCurrentSolutionIndex();
+        }
+    }
 }

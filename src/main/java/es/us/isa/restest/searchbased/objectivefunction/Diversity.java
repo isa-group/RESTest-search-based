@@ -2,10 +2,9 @@ package es.us.isa.restest.searchbased.objectivefunction;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
 import es.us.isa.restest.testcases.TestCase;
+import es.us.isa.restest.testcases.TestResult;
 import org.javatuples.Triplet;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,13 +24,15 @@ import java.util.List;
  */
 public class Diversity extends RestfulAPITestingObjectiveFunction {
 
-    private ELEMENT elementType = null;
-    private SimilarityMeter similarityMeter = null;
+    private SimilarityMeter similarityMeter;
+    private Element elementType;
+    private boolean normalize; // Diversity measured in [0,1], to avoid bias due to test suite size
 
-    public Diversity(SimilarityMeter.METRIC similarityMetric, ELEMENT element) {
-        super(ObjectiveFunctionType.MAXIMIZATION,element != ELEMENT.INPUT,element == ELEMENT.FAILURE);
+    public Diversity(SimilarityMeter.METRIC similarityMetric, Element element, boolean normalize) {
+        super(ObjectiveFunctionType.MAXIMIZATION,element != Element.INPUT,element == Element.FAILURE);
         elementType = element;
         similarityMeter = new SimilarityMeter(similarityMetric);
+        this.normalize = normalize;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class Diversity extends RestfulAPITestingObjectiveFunction {
         double globalDiversity = 0;
         switch (elementType){
             case FAILURE:
-                List<Triplet<String, String, String>> failures = new UniqueFailures().getFailures(solution); // operationId, statusCode, responseBody
+                List<Triplet<String, String, String>> failures = new UniqueElements(Element.FAILURE, false).getFailures(solution); // operationId, statusCode, responseBody
 //                globalDiversity += failures.stream().map(f -> Pair.with(f.getValue0(), f.getValue1())).distinct().count(); // Unique operationId-statusCodes count +1 each
                 for (int i=0; i < failures.size(); i++) {
                     Triplet<String, String, String> failure_i = failures.get(i);
@@ -53,64 +54,49 @@ public class Diversity extends RestfulAPITestingObjectiveFunction {
                 }
                 break;
             case INPUT:
-                globalDiversity += solution.getVariables().stream().map(TestCase::getOperationId).distinct().count();
+//                globalDiversity += solution.getVariables().stream().map(TestCase::getOperationId).distinct().count();
                 for (int i=0; i < solution.getVariables().size(); i++) {
                     TestCase testCase_i = solution.getVariables().get(i);
                     for (int j=i+1; j < solution.getVariables().size(); j++) {
                         TestCase testCase_j = solution.getVariables().get(j);
-                        if (testCase_i.getOperationId().equals(testCase_j.getOperationId())) {
-                            String testCaseRepresentation_i = getTestCaseRepresentation(testCase_i);
-                            String testCaseRepresentation_j = getTestCaseRepresentation(testCase_j);
-                            globalDiversity += 1 - similarityMeter.apply(testCaseRepresentation_i, testCaseRepresentation_j);
-                        } else
+                        if (testCase_i.getOperationId().equals(testCase_j.getOperationId()))
+                            globalDiversity += 1 - similarityMeter.apply(testCase_i.getFlatRepresentation(), testCase_j.getFlatRepresentation());
+                        else
                             globalDiversity += 1; // Distinct operations count +1 each
+                    }
+                }
+                break;
+            case OUTPUT:
+//                globalDiversity += solution.getVariables().stream().map(TestCase::getOperationId).distinct().count();
+                for (int i=0; i < solution.getTestResults().size(); i++) {
+                    TestCase testCase_i = solution.getVariables().get(i);
+                    TestResult testResult_i = solution.getTestResult(testCase_i.getId());
+                    for (int j=i+1; j < solution.getTestResults().size(); j++) {
+                        TestCase testCase_j = solution.getVariables().get(j);
+                        TestResult testResult_j = solution.getTestResult(testCase_j.getId());
+                        if (testCase_i.getOperationId().equals(testCase_j.getOperationId()) && testResult_i.getStatusCode().equals(testResult_j.getStatusCode()))
+                            globalDiversity += 1 - similarityMeter.apply(testResult_i.getFlatRepresentation(), testResult_j.getFlatRepresentation());
+                        else
+                            globalDiversity += 1; // Distinct pairs operationId-statusCode count +1 each
                     }
                 }
                 break;
             default:
                 throw new IllegalArgumentException("The element type " + elementType + " is not supported");
         }
+        if (normalize)
+            globalDiversity /= ((double) (solution.getNumberOfVariables() * (solution.getNumberOfVariables() - 1)) / 2);
 
+        saveFitnessValue(globalDiversity);
         logEvaluation(globalDiversity);
         return globalDiversity;
     }
 
-    private String getTestCaseRepresentation(TestCase tc) {
-        StringBuilder tcRepresentation = new StringBuilder(300);
-
-        tcRepresentation.append(tc.getMethod().toString()); // Method
-
-        String path = tc.getPath(); // Path
-        for(String pathParameter : tc.getPathParameters().keySet())
-            path=path.replace("{"+pathParameter+"}",tc.getPathParameters().get(pathParameter));
-        tcRepresentation.append(path);
-
-        tcRepresentation.append(tc.getInputFormat()); // Content type
-
-        List<String> queryParameters = new ArrayList<>(tc.getQueryParameters().keySet());  // Query parameters
-        Collections.sort(queryParameters);
-        for(String queryParameter : queryParameters)
-            tcRepresentation.append(queryParameter).append(tc.getQueryParameters().get(queryParameter));
-
-        List<String> headerParameters = new ArrayList<>(tc.getHeaderParameters().keySet());  // Header parameters
-        Collections.sort(headerParameters);
-        for(String headerParameter : headerParameters)
-            tcRepresentation.append(headerParameter).append(tc.getHeaderParameters().get(headerParameter));
-
-        List<String> formDataParameters = new ArrayList<>(tc.getFormParameters().keySet());  // FormData parameters
-        Collections.sort(formDataParameters);
-        for(String formDataParameter : formDataParameters)
-            tcRepresentation.append(formDataParameter).append(tc.getFormParameters().get(formDataParameter));
-
-        if (tc.getBodyParameter() != null) // Body
-            tcRepresentation.append(tc.getBodyParameter());
-
-        return  tcRepresentation.toString();
+    public String toString() {
+        return getClass().getSimpleName() + " - "
+                + similarityMeter.getSimilarityMetric() + ", "
+                + elementType + ", "
+                + normalize;
     }
 
-    public enum ELEMENT {
-        INPUT,
-        OUTPUT,
-        FAILURE
-    }
 }
