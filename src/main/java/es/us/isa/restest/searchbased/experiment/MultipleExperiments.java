@@ -25,10 +25,7 @@ import es.us.isa.restest.testcases.TestCase;
 import es.us.isa.restest.testcases.TestResult;
 import es.us.isa.restest.testcases.writers.IWriter;
 import es.us.isa.restest.testcases.writers.RESTAssuredWriter;
-import es.us.isa.restest.util.CSVManager;
-import es.us.isa.restest.util.PropertyManager;
-import es.us.isa.restest.util.TestManager;
-import es.us.isa.restest.util.Timer;
+import es.us.isa.restest.util.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
@@ -291,8 +288,10 @@ public class MultipleExperiments {
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir);
-        arm.setHistoryTrend(true);
+        //Find auth property names (if any)
+        List<String> authProperties = AllureAuthManager.findAuthProperties(spec, confPath);
+
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir, authProperties);        arm.setHistoryTrend(true);
         return arm;
     }
 
