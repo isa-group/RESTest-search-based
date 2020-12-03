@@ -169,7 +169,7 @@ public class SearchBasedTestSuiteGenerator {
         return new RestfulAPITestSuiteGenerationProblem(spec, configuration, objFuncs, JMetalRandom.getInstance().getRandomGenerator(),fixedTestSuiteSize);
     }
 
-    public void run() throws IOException {
+    public List<RestfulAPITestSuiteSolution> run() throws IOException {
     	JMetalLogger.logger.info("Generating testSuites for: " + problem.getName() + " using as objectives :"+ problem.getObjectiveFunctions() );
     	JMetalLogger.logger.info("Starting the execution of: " + algorithms.get(0).getAlgorithm().getClass().getSimpleName());
         Timer.startCounting(TEST_SUITE_GENERATION);
@@ -217,6 +217,7 @@ public class SearchBasedTestSuiteGenerator {
         }
         logger.info("Executing best test suite with oracles enabled...");
         restestRunner.run(bestSolution.getVariables());
+        return suites;
     }
 
 	public void runExperiment(int independentRuns, int numberOfCores) throws IOException {
@@ -321,6 +322,13 @@ public class SearchBasedTestSuiteGenerator {
 
     public RestfulAPITestSuiteSolution getBestSolution() {
         return bestSolution;
-    }
+    }      
     
+    public SearchBasedRunner getRestestRunner() {
+		return restestRunner;
+	}
+    
+    public void setRestestRunner(SearchBasedRunner restestRunner) {
+		this.restestRunner = restestRunner;
+	}
 }

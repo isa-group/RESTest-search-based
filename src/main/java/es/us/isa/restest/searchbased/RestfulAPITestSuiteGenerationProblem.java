@@ -74,7 +74,7 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
     }
     
     public RestfulAPITestSuiteGenerationProblem(OpenAPISpecification apiUnderTest, TestConfigurationObject configuration, List<RestfulAPITestingObjectiveFunction> objFuncs, PseudoRandomGenerator randomGenerator, Integer fixedTestSuiteSize) {
-    	this(apiUnderTest,configuration,objFuncs,Collections.EMPTY_LIST,randomGenerator, fixedTestSuiteSize);
+    	this(apiUnderTest,configuration,objFuncs,new ArrayList<OptimizationConstraint>(),randomGenerator, fixedTestSuiteSize);
     }
     
     public RestfulAPITestSuiteGenerationProblem(OpenAPISpecification apiUnderTest, TestConfigurationObject configuration, List<RestfulAPITestingObjectiveFunction> objFuncs, List<OptimizationConstraint> constraints, PseudoRandomGenerator randomGenerator, Integer fixedTestSuiteSize) {
@@ -272,6 +272,11 @@ public class RestfulAPITestSuiteGenerationProblem extends AbstractGenericProblem
     public List<OptimizationConstraint> getOptimizationConstraints() {
 		return optimizationConstraints;
 	}
+    
+    @Override
+    public int getNumberOfConstraints() {
+      return optimizationConstraints.size();
+    }
 
     public void updateReportIndexes() {
         if (Boolean.parseBoolean(readProperty("search.stats.enabled")) && experimentReport != null) {
