@@ -10,8 +10,8 @@ import es.us.isa.restest.searchbased.objectivefunction.SuiteSize;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import org.uma.jmetal.algorithm.Algorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
-import org.uma.jmetal.util.experiment.util.ExperimentProblem;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
 
 import java.io.IOException;
 import java.util.ArrayList;

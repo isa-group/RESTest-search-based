@@ -10,7 +10,7 @@ import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import org.uma.jmetal.algorithm.Algorithm;
 import org.uma.jmetal.algorithm.multiobjective.randomsearch.RandomSearch;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 
 import java.io.IOException;
 import java.util.Arrays;

@@ -14,6 +14,11 @@ import es.us.isa.restest.testcases.TestCase;
  */
 public class ValidTestsRatio extends RestfulAPITestingObjectiveFunction {
 
+	// Default type is Maximization;
+	public ValidTestsRatio() {
+		this(ObjectiveFunctionType.MAXIMIZATION);
+	}
+	
 	public ValidTestsRatio(ObjectiveFunctionType type) {
 		super(type,false,true);
 	}

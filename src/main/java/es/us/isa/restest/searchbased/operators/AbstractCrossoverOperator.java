@@ -1,7 +1,7 @@
 package es.us.isa.restest.searchbased.operators;
 
 import es.us.isa.restest.searchbased.RestfulAPITestSuiteSolution;
-import org.uma.jmetal.operator.CrossoverOperator;
+import org.uma.jmetal.operator.crossover.CrossoverOperator;
 import org.uma.jmetal.util.JMetalException;
 import org.uma.jmetal.util.pseudorandom.BoundedRandomGenerator;
 import org.uma.jmetal.util.pseudorandom.JMetalRandom;
