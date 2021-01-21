@@ -2,14 +2,23 @@ package es.us.isa.restest.searchbased.experiment;
 
 import java.io.Serializable;
 import java.util.List;
+
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
+import org.uma.jmetal.lab.experiment.util.ExperimentProblem;
+import org.uma.jmetal.problem.Problem;
+import org.uma.jmetal.solution.Solution;
+
 import es.us.isa.restest.searchbased.SearchBasedTestSuiteGenerator;
 import es.us.isa.restest.searchbased.algorithms.SearchBasedAlgorithm;
+import es.us.isa.restest.searchbased.constraints.ObjectiveFunctionConstraint;
+import es.us.isa.restest.searchbased.constraints.OptimizationConstraint;
 import es.us.isa.restest.searchbased.objectivefunction.RestfulAPITestingObjectiveFunction;
 import es.us.isa.restest.searchbased.reporting.ExperimentReport;
 import es.us.isa.restest.searchbased.terminationcriteria.MaxEvaluations;
 import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
 
+import java.util.ArrayList;
 //import javax.annotation.Generated;
 import java.util.Collections;
 
@@ -21,26 +30,29 @@ import java.util.Collections;
  *
  */
 
-public class ExperimentalConfiguration implements Serializable {
-
+public class ExperimentalConfiguration extends ExperimentAlgorithm implements Serializable {
 	int id;
 	// Experiment data:
-	String experimentName;
+	String experimentName;	
 	String targetDir; // Directory where tests will be generated.
 	String packageName; // Package name
 	String testClassName; // Name of the class where tests will be written.
 	long seed;
 	// Problem data:
+	String problemTag;
 	String openApiSpecPath;
 	String configFilePath;
 	int minTestSuiteSize;
 	int maxTestSuiteSize;
 	List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
+	List<OptimizationConstraint> constraints;
 	// Algorithm data:
 	SearchBasedAlgorithm algorithm;
 
 	// @Generated("SparkTools")
 	private ExperimentalConfiguration(DefaultAlgorithmBuilder builder) {
+		super(null,builder.algorithmTag, null,1);
+		this.problemTag = builder.problemTag;
 		this.experimentName = builder.experimentName;
 		this.openApiSpecPath = builder.openApiSpecPath;
 		this.configFilePath = builder.configFilePath;
@@ -49,6 +61,7 @@ public class ExperimentalConfiguration implements Serializable {
 		this.testClassName = builder.testClassName;
 		this.seed = builder.seed;
 		this.objectiveFunctions = builder.objectiveFunctions;
+		this.constraints = builder.constraints;
 		this.minTestSuiteSize = builder.minTestSuiteSize;
 		this.maxTestSuiteSize = builder.maxTestSuiteSize;		
 		
@@ -68,6 +81,8 @@ public class ExperimentalConfiguration implements Serializable {
 	}
 
 	public ExperimentalConfiguration(Builder builder) {
+		super(null,builder.algorithmTag, null,1);
+		this.problemTag = builder.problemTag;
 		this.experimentName = builder.experimentName;
 		this.openApiSpecPath = builder.openApiSpecPath;
 		this.configFilePath = builder.configFilePath;
@@ -80,6 +95,10 @@ public class ExperimentalConfiguration implements Serializable {
 		this.maxTestSuiteSize = builder.maxTestSuiteSize;
 		this.algorithm = builder.algorithm;
 	}
+	
+	public int getRunId() {
+	    return this.id;
+	  }
 
 	/**
 	 * Creates builder to build {@link ExperimentalConfiguration}.
@@ -100,6 +119,8 @@ public class ExperimentalConfiguration implements Serializable {
 	 */
 	// @Generated("SparkTools")
 	public static final class DefaultAlgorithmBuilder {
+		private String algorithmTag;
+		private String problemTag;
 		private String experimentName;
 		private String openApiSpecPath;
 		private String configFilePath;
@@ -113,6 +134,7 @@ public class ExperimentalConfiguration implements Serializable {
 		private double[] mutationProbabilities;
 		private double crossoverProbability;
 		private List<RestfulAPITestingObjectiveFunction> objectiveFunctions = Collections.emptyList();
+		private List<OptimizationConstraint> constraints= new ArrayList<OptimizationConstraint>();
 		private TerminationCriterion terminationCriterion;
 
 		private DefaultAlgorithmBuilder() {
@@ -188,6 +210,16 @@ public class ExperimentalConfiguration implements Serializable {
 			this.terminationCriterion = terminationCriterion;
 			return this;
 		}
+		
+		public DefaultAlgorithmBuilder withConstraints(List<OptimizationConstraint> constraints) {
+			this.constraints=constraints;
+			return this;
+		}
+		
+		public DefaultAlgorithmBuilder withProblemTag(String problemTag) {
+			this.problemTag=problemTag;
+			return this;
+		}
 
 		public ExperimentalConfiguration build() {
 			return new ExperimentalConfiguration(this);
@@ -195,6 +227,9 @@ public class ExperimentalConfiguration implements Serializable {
 	}
 
 	public static final class Builder {
+		public String algorithmTag;
+		private String experimentTag;
+		private String problemTag;
 		private String experimentName;
 		private String openApiSpecPath;
 		private String configFilePath;
@@ -278,6 +313,7 @@ public class ExperimentalConfiguration implements Serializable {
 	public String getExperimentName() {
 		return experimentName;
 	}
+	
 
 	public String getTargetDir() {
 		return targetDir;
@@ -329,6 +365,6 @@ public class ExperimentalConfiguration implements Serializable {
 		objectiveFunctions.forEach(objFunc -> objFunc.setExperimentReport(experimentReport));
 		// terminationCriterion.setExperimentReport(experimentReport);
 		return experimentReport;
-	}
+	}		
 
 }

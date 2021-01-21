@@ -9,18 +9,14 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.uma.jmetal.lab.experiment.component.ExperimentComponent;
+import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 import org.uma.jmetal.solution.Solution;
 import org.uma.jmetal.util.JMetalException;
 import org.uma.jmetal.util.JMetalLogger;
-import org.uma.jmetal.util.experiment.Experiment;
-import org.uma.jmetal.util.experiment.ExperimentComponent;
-import org.uma.jmetal.util.experiment.util.ExperimentAlgorithm;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-
-import es.us.isa.restest.searchbased.RestfulAPITestSuiteGenerationProblem;
 
 public class ExecuteAlgorithmsWithCheckpoints<S extends Solution<?>, Result extends List<S>> implements ExperimentComponent {
 
@@ -47,7 +43,7 @@ public class ExecuteAlgorithmsWithCheckpoints<S extends Solution<?>, Result exte
 		this.experiment=configuration;		
 	}	
 	
-	public Experiment<S, Result> getExperiment() {
+	public CheckpointedExperiment<S, Result> getExperiment() {
 		return experiment;
 	}
 	

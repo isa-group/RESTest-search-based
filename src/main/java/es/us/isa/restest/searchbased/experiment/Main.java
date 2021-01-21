@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static es.us.isa.restest.searchbased.terminationcriteria.Or.or;
@@ -174,7 +175,7 @@ public class Main {
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir);
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir, Collections.emptyList());
         arm.setHistoryTrend(true);
         return arm;
     }

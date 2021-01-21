@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
@@ -53,8 +54,10 @@ public class ConstrainedExperiment {
 	//Problem configuration 
 	private String OAISpecPath = "src/test/resources/Bikewise/swagger.yaml";		    // Path to OAS specification file
     private String confPath = "src/test/resources/Bikewise/fullConf.yaml";		    // Path to test configuration file       
-    private String resourcePath ="/v2/incidents";
-    private String method ="GET";
+    
+	private String resourcePath ="/v2/incidents";
+    
+	private String method ="GET";
     private int minTestSuiteSize=2;
     private int maxTestSuiteSize=10;
     // 			Constraint:
@@ -156,7 +159,7 @@ public class ConstrainedExperiment {
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir);
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir,Collections.emptyList());
         arm.setHistoryTrend(true);
         return arm;
     }

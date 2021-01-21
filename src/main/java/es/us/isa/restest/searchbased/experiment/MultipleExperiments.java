@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -25,7 +26,6 @@ import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.uma.jmetal.operator.MutationOperator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -103,34 +103,34 @@ public class MultipleExperiments {
                     0.01, // AddParameterMutation
                     0.01, // RemoveParameterMutation
                     0.01  // RandomParameterValueMutation
-            },
+            }/*,
             {0.05, 0.05, 0.05, 0.05, 0.05, 0.05},
-            {0.1, 0.1, 0.1, 0.1, 0.1, 0.1}
+            {0.1, 0.1, 0.1, 0.1, 0.1, 0.1}*/
     };
-    private static double[] crossoverProbabilityArray = {0.5, 0.75, 0.9}; // SinglePointTestSuiteCrossover
+    private static double[] crossoverProbabilityArray = {0.5};//, 0.75, 0.9}; // SinglePointTestSuiteCrossover
 
     // Objective functions: ORDER IS IMPORTANT!!! First one will be used to determine the "best" test suite
     private static List<List<RestfulAPITestingObjectiveFunction>> objectiveFunctionsArray = Lists.newArrayList(
-            Lists.newArrayList(new Coverage()),
+            //Lists.newArrayList(new Coverage()),
             Lists.newArrayList(new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.INPUT, false)),
-            Lists.newArrayList(new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.OUTPUT, false)),
-            Lists.newArrayList(new UniqueElements(Element.FAILURE, false)),
-            Lists.newArrayList(
+            //Lists.newArrayList(new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.OUTPUT, false)),
+            //Lists.newArrayList(new UniqueElements(Element.FAILURE, false)),
+            /*Lists.newArrayList(
                     new BalanceOfValidTestsRatio(0.8),
                     new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.INPUT, false)
-            ),
+            ),*/
             Lists.newArrayList(
                     new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.FAILURE, false),
                     new Coverage()
-            ),
+            )/*,
             Lists.newArrayList(
                     new UniqueElements(Element.FAILURE, false),
                     new Diversity(SimilarityMeter.METRIC.LEVENSHTEIN, Element.INPUT, false)
-            )
+            )*/
     );
     // Termination criterion
     private static AbstractTerminationCriterion[] terminationCriterionArray = {
-            new MaxEvaluations(1000),
+            new MaxEvaluations(1000)/*,
             new MaxEvaluations(5000),
             new MaxEvaluations(10000),
             new MaxExecutedRequests(1000),
@@ -138,7 +138,7 @@ public class MultipleExperiments {
             new MaxExecutedRequests(5000),
             new MaxExecutionTime(15, MaxExecutionTime.TimeUnit.MINUTES),
             new MaxExecutionTime(1, MaxExecutionTime.TimeUnit.HOURS),
-            new MaxExecutionTime(2, MaxExecutionTime.TimeUnit.HOURS),
+            new MaxExecutionTime(2, MaxExecutionTime.TimeUnit.HOURS),*/
     };
 
     // API parameters
@@ -157,17 +157,17 @@ public class MultipleExperiments {
     private static double crossoverProbability;
     private static List<RestfulAPITestingObjectiveFunction> objectiveFunctions;
     private static AbstractTerminationCriterion terminationCriterion;
-
-    private static String experimentName;
-    private static String targetDir; // Directory where tests will be generated.
-    private static String packageName; // Package name
-    private static String testClassName; // Name of the class where tests will be written.
-    private static long seed;
-
+    
+    private static String targetDir = "src/generation/java/searchbased";	// Directory where tests will be generated.
+    private static String packageName=experimentBaseName; // Package name
+    private static String testClassName = experimentBaseName.substring(0,1).toUpperCase() + experimentBaseName.substring(1); // Name of the class where tests will be written.
+    private static long seed=1979;    							
+    
     
 
     public static void main(String[] args) {
         // Create CSV file with stats of all experiments
+    	Locale.setDefault(Locale.ENGLISH);
         reportPath = readProperty("search.stats.dir")
                 + "/" + experimentBaseName + RandomStringUtils.randomAlphanumeric(10)
                 + "_" + readProperty("search.stats.general.file");
@@ -248,7 +248,7 @@ public class MultipleExperiments {
             
             Timer.stopCounting(ALL);
             generateTimeReport();
-            logger.info("Results saved to folder {}", experimentName);
+            logger.info("Results saved to folder {}", experimentBaseName);
             
             
          // Update file containing stats from all experiments
@@ -256,7 +256,7 @@ public class MultipleExperiments {
             CSVManager.writeCSVRow(reportPath, experimentReport.getGeneralStatsCsvRow());
 
             // Create file containing objFunc stats from this specific experiment
-            String objFuncDir = readProperty("search.stats.dir") + "/" + experimentName;
+            String objFuncDir = readProperty("search.stats.dir") + "/" + experimentBaseName;
             createDir(objFuncDir);
             String objFuncPath = objFuncDir + "/" + readProperty("search.stats.objfunc.file");
             CSVManager.createCSVwithHeader(objFuncPath, ExperimentReport.getObjFuncStatsCsvHeader());
@@ -360,12 +360,16 @@ public class MultipleExperiments {
                                         		objectiveFunctions.stream().noneMatch(RestfulAPITestingObjectiveFunction::isRequiresTestExecution))) {
                                         	ExperimentalConfiguration config=ExperimentalConfiguration.defaultAlgorithmBuilder()                                        			
                                         			/// General experiment parameters:                                        		
-                                        			.withExperimentName(experimentName)
+                                        			.withExperimentName(experimentBaseName)
                                         			.withTargetDir(targetDir)
                                         			.withSeed(seed)
-                                        			// Problem parameters:                                        			
+                                        			// Problem parameters:         
+                                        			.withOpenApiSpecPath(OAISpecPath)
+                                        			.withConfigFilePath(confPath)
                                         			.withMinTestSuiteSize(minTestSuiteSize)
-                                        			.withMaxTestSuiteSize(maxTestSuiteSize)                                        			
+                                        			.withMaxTestSuiteSize(maxTestSuiteSize)
+                                        			.withObjectiveFunctions(objectiveFunctions)
+                                        			.withConstraints(Collections.EMPTY_LIST)
                                         			// Algorithms parameters:
                                         			.withPopulationSize(populationSize)
                                         			.withMutationProbabilities(mutationProbabilities)
@@ -428,27 +432,27 @@ public class MultipleExperiments {
         writer.setAllureReport(true);
         writer.setEnableStats(true);
         writer.setEnableOutputCoverage(true);
-        writer.setAPIName(experimentName);
+        writer.setAPIName(experimentBaseName);
         return writer;
     }
 
     // Create an Allure report manager
     private static AllureReportManager createAllureReportManager() {
-        String allureResultsDir = PropertyManager.readProperty("allure.results.dir") + "/" + experimentName;
-        String allureReportDir = PropertyManager.readProperty("allure.report.dir") + "/" + experimentName;
+        String allureResultsDir = PropertyManager.readProperty("allure.results.dir") + "/" + experimentBaseName;
+        String allureReportDir = PropertyManager.readProperty("allure.report.dir") + "/" + experimentBaseName;
 
         // Delete previous results (if any)
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir);
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir,Collections.emptyList());
         arm.setHistoryTrend(true);
         return arm;
     }
 
     private static StatsReportManager createStatsReportManager() {
-        String testDataDir = PropertyManager.readProperty("data.tests.dir") + "/" + experimentName;
-        String coverageDataDir = PropertyManager.readProperty("data.coverage.dir") + "/" + experimentName;
+        String testDataDir = PropertyManager.readProperty("data.tests.dir") + "/" + experimentBaseName;
+        String coverageDataDir = PropertyManager.readProperty("data.coverage.dir") + "/" + experimentBaseName;
 
         // Delete previous results (if any)
         deleteDir(testDataDir);
@@ -463,7 +467,7 @@ public class MultipleExperiments {
 
     private static void generateTimeReport() {
         ObjectMapper mapper = new ObjectMapper();
-        String timePath = readProperty("data.tests.dir") + "/" + experimentName + "/" + readProperty("data.tests.time");
+        String timePath = readProperty("data.tests.dir") + "/" + experimentBaseName + "/" + readProperty("data.tests.time");
         try {
             mapper.writeValue(new File(timePath), Timer.getCounters());
         } catch (IOException e) {

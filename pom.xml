@@ -308,6 +308,12 @@
             <artifactId>restest</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+		<!-- IDL-resaoner required dependency -->                
+        <dependency>
+             <groupId>org.eclipse.xtext</groupId>
+            <artifactId>org.eclipse.xtext</artifactId>
+        	<version>2.22.0</version>
+        </dependency>        
     </dependencies>
 
     <build>
