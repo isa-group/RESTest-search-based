@@ -21,6 +21,7 @@ import es.us.isa.restest.searchbased.terminationcriteria.TerminationCriterion;
 import es.us.isa.restest.specification.OpenAPISpecification;
 import es.us.isa.restest.testcases.writers.IWriter;
 import es.us.isa.restest.testcases.writers.RESTAssuredWriter;
+import es.us.isa.restest.util.AllureAuthManager;
 import es.us.isa.restest.util.PropertyManager;
 import es.us.isa.restest.util.Timer;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -175,7 +176,10 @@ public class Main {
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir, Collections.emptyList());
+        //Find auth property names (if any)
+        List<String> authProperties = AllureAuthManager.findAuthProperties(spec, confPath);
+
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir, authProperties);
         arm.setHistoryTrend(true);
         return arm;
     }

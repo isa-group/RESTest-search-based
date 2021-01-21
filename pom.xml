@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>RESTest</name>
+    <name>RESTest-search-based</name>
     <url>http://maven.apache.org</url>
 
     <licenses>
@@ -280,33 +280,32 @@
             <version>1.2</version>
         </dependency>
 
-        <!-- LOCAL DEPENDENCIES -->
-        <!-- JSONmutator local dependency -->
+        <!-- JSONmutator -->
         <dependency>
             <groupId>es.us.isa</groupId>
             <artifactId>json-mutator</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
-        <!-- IDLreasoner local dependency -->
+        <!-- IDLreasoner -->
         <dependency>
             <groupId>es.us.isa</groupId>
             <artifactId>idl-reasoner</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1</version>
         </dependency>
 
-        <!-- IDL2MiniZincMapper local dependency -->
+        <!-- IDL -->
         <dependency>
             <groupId>es.us.isa</groupId>
-            <artifactId>idl-2-minizinc-mapper</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <artifactId>idl</artifactId>
+            <version>0.0.1</version>
         </dependency>
 
-        <!-- RESTest local dependency -->
+        <!-- RESTest -->
         <dependency>
             <groupId>es.us.isa</groupId>
             <artifactId>restest</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.1.0</version>
         </dependency>
 		<!-- IDL-resaoner required dependency -->                
         <dependency>
@@ -322,8 +321,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -340,12 +339,12 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>es.us.isa.restest.main.BikeWiseExperiment</mainClass>
+                                    <mainClass>es.us.isa.restest.searchbased.experiment.Main</mainClass>
                                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                                     <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                                 </manifest>
                             </archive>
-                            <finalName>restest</finalName>
+                            <finalName>restest-search-based</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>

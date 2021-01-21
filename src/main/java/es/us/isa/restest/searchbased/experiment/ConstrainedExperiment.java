@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import es.us.isa.restest.util.AllureAuthManager;
 import org.uma.jmetal.lab.experiment.util.ExperimentAlgorithm;
 
 import es.us.isa.restest.coverage.CoverageGatherer;
@@ -159,8 +160,12 @@ public class ConstrainedExperiment {
         deleteDir(allureResultsDir);
         deleteDir(allureReportDir);
 
-        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir,Collections.emptyList());
+        //Find auth property names (if any)
+        List<String> authProperties = AllureAuthManager.findAuthProperties(new OpenAPISpecification(OAISpecPath), confPath);
+
+        AllureReportManager arm = new AllureReportManager(allureResultsDir, allureReportDir, authProperties);        
         arm.setHistoryTrend(true);
+
         return arm;
     }
 
